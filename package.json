@@ -1,0 +1,12 @@
+{
+    "name": "uabrides-chat",
+    "description": "BestUABrides.com chat",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+      "ws": "*",
+      "redis": "*",
+      "hat": "*",
+      "underscore": "*"
+    }
+}
