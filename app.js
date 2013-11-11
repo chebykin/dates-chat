@@ -8,17 +8,12 @@
  * second there can be a lot login/logout events. We are not so paranoiac of precision of events. 2-3 seconds is enough.
  */
 
-var config = require('./lib/config'),
+var config = require('./config')[process.env.NODE_ENV],
     chat = require('./lib/chat'),
     app = chat(),
     messages_actions = require('./actions/messages'),
     sessions_actions = require('./actions/sessions'),
-    Redis = require('redis'),
-    WebSocketServer = require('ws').Server,
-    redis = Redis.createClient(config.redis_port),
     util = require('util'),
-    hat = require('hat'),
-    _ = require('underscore'),
     men = require('./lib/user').men,
     women = require('./lib/user').women;
 

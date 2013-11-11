@@ -50,10 +50,13 @@ describe('Application', function () {
             request = {resource: 'thrower', method: 'get'},
             application = this.application;
 
-        function thrower() {
+        function sessions () {}
+
+        function thrower () {
             throw new PublicError('some message');
         }
 
+        application.use('sessions', sessions);
         application.use('thrower', thrower);
 
         ws.on('open', function () {

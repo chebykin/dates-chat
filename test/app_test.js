@@ -1,6 +1,7 @@
 var app = require('../app.js'),
     should = require('should'),
     sinon = require('sinon'),
+    utils = require('../lib/utils'),
     WebSocket = require('ws'),
     port = 20400;
 
