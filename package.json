@@ -4,9 +4,12 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
-      "ws": "*",
-      "redis": "*",
-      "hat": "*",
-      "underscore": "*"
+        "ws": "*",
+        "redis": "*",
+        "hat": "*",
+        "underscore": "*",
+        "mocha": "*",
+        "should": "*",
+        "sinon": "*"
     }
 }

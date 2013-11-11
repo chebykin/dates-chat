@@ -22,7 +22,7 @@ redis.hgetall('user_profiles', function (err, obj) {
     var value = JSON.stringify({user_id: id, role: 'woman'});
     redis.hset('chat:session:store', hash, value);
     console.log(hash);
-    ws = new WebSocket('ws://chat.ub.local:10001', {
+    ws = new WebSocket('ws://chat.ub.local:10013', {
       headers: {
         cookie: "_v_token_key=" + hash
       }

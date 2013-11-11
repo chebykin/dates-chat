@@ -1,0 +1,32 @@
+"dialogs:#{man_id}_#{woman_id}" :list | contains serialized messages for two persons dialog.
+"recent_users:#{user_id}" :list | list contains cached recent user's contacts. updates on message add and periodically.
+
+===
+WebSocket resources and methods.
+
+messages
+= inbound:
+- get | get all messages
+- post | add new message
+= outbound:
+- push | push one message
+
+
+***
+online_users
+= inbound:
+- get | get all online users
+= outbound:
+- replace | replaces all recent users
+***
+
+
+recent_users
+= inbound:
+- get | get all recent users
+= outbound:
+- replace | replaces all recent users
+***
+
+===
+Inbound error codes.
