@@ -7,14 +7,6 @@ var messages = require('../actions/messages'),
 
 describe('Messages', function () {
 
-    it('should send messages to contact id', function () {
-        var ws = new WebSocket('http://localhost');
-        ws.role = 'man';
-        ws.user_id = '137';
-        messages(ws, 'get', undefined);
-        // todo...
-    });
-
     it('should deliver message to recipient_id', function () {
         var manWS = new WebSocket('http://localhost'),
             message = {recipient_id: 345, sender_id: 137},
@@ -22,8 +14,7 @@ describe('Messages', function () {
             womanWS = new WebSocket('http://localhost'),
             anotherWomanWS = new WebSocket('http://localhost'),
             anotherManWS = new WebSocket('http://localhost'),
-            womenMock = sinon.mock(women),
-            menMock = sinon.mock(men);
+            womenMock = sinon.mock(women);
 
         sinon.stub(womanWS, 'send');
         sinon.stub(anotherWomanWS, 'send');
