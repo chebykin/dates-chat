@@ -1,3 +1,12 @@
+===
+Cached framework info.
+
+user_profiles :hash | all users info
+man_role :set | all men ids
+woman_role :set | all women ids
+===
+Chat info.
+
 "dialogs:#{man_id}_#{woman_id}" :list | contains serialized messages for two persons dialog.
 "recent_users:#{user_id}" :list | list contains cached recent user's contacts. updates on message add and periodically.
 
