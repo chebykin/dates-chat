@@ -48,12 +48,13 @@ describe('Application', function () {
     it("should notify about PublicError via websocket", function (done) {
         var ws = new WebSocket('ws://localhost:' + port),
             request = {resource: 'thrower', method: 'get'},
-            application = this.application;
+            application = this.application,
+            error_text = "TEST ERROR: should notify about PublicError via websocket\n";
 
         function sessions () {}
 
         function thrower () {
-            throw new PublicError('some message');
+            throw new PublicError(error_text);
         }
 
         application.use('sessions', sessions);
@@ -64,7 +65,7 @@ describe('Application', function () {
         });
 
         ws.on('message', function (data) {
-            JSON.parse(data).should.be.eql({reason: 'error', description: 'some message'});
+            JSON.parse(data).should.be.eql({reason: 'error', description: error_text});
             done();
         })
 

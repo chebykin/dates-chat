@@ -13,7 +13,10 @@ module.exports = function (ws, method, payload) {
             currentCollection(ws).get_messages(ws.user_id);
             break;
         case 'post':
-            oppositeCollection(ws).deliver_message(payload, ws.user_id);
+            currentCollection(ws).deliver_message(payload, ws.user_id);
+            break;
+        case 'delete':
+            currentCollection(ws).delete_messages(payload, ws.user_id);
             break;
         default:
             throw new PrivateError('messages action: ws is not WebSocket instance');
