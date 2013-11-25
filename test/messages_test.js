@@ -10,7 +10,7 @@ var messages = require('../actions/messages'),
 
 describe('Messages', function () {
     // TODO: add check for redis persistence
-    it('should deliver message to recipient_id', function () {
+    it.skip('should deliver message to recipient_id', function () {
         var manWS = new WebSocket('http://localhost'),
             message = {recipient_id: 345, sender_id: 137},
             expect_message = JSON.stringify({reason: 'messages', method: 'push', payload: {recipient_id: 345, sender_id: 137}}),
@@ -45,7 +45,7 @@ describe('Messages', function () {
         women.all=[];
     });
 
-    it('should handle delete action', function () {
+    it.skip('should handle delete action', function () {
         var manWS = new WebSocket('http://localhost'),
             delete_request = {contact_id: 400},
             expect_message = {};
