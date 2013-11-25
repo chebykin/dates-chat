@@ -2,6 +2,7 @@
 Cached framework info.
 
 user_profiles :hash | all users info
+wallets :hash | all men balances
 man_role :set | all men ids
 woman_role :set | all women ids
 ===

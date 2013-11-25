@@ -6,13 +6,19 @@
     "scripts": {
         "start": "NODE_ENV=development node app.js --harmony"
     },
+    "devDependencies": {
+        "mocha": "*",
+        "should": "*",
+        "chai": "*",
+        "sinon": "*",
+        "nock": "*"
+    },
     "dependencies": {
         "ws": "*",
         "redis": "*",
+        "request": "*",
         "hat": "*",
-        "underscore": "*",
-        "mocha": "*",
-        "should": "*",
-        "sinon": "*"
+        "q": "*",
+        "underscore": "*"
     }
 }
