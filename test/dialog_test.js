@@ -1,3 +1,5 @@
+"use strict";
+
 var sinon = require('sinon'),
     expect = require('chai').expect,
     config = require('../config')[process.env.NODE_ENV],
@@ -53,6 +55,35 @@ describe('Dialog', function () {
                 })
                 .then(done, done);
         });
+    });
 
+    describe('continuing', function () {
+        beforeEach(function () {
+            this.dialog = new Dialog(137, 103);
+        });
+
+        it.skip('should start dialog if it not yet started', function (done) {
+            var dialog = this.dialog;
+
+            expect(dialog.state).to.equal('initialized');
+
+            dialog.continue_as('man')
+                .then(function () {
+                    expect(dialog.state).to.equal('started');
+                })
+                .then(done, done);
+        });
+
+        describe('as man', function () {
+
+        });
+
+        describe('as woman', function () {
+
+        });
+    });
+
+    describe('closing', function () {
+        it("can be initialized only by man or end money callback");
     });
 });
