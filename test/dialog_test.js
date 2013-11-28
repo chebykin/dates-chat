@@ -1,6 +1,7 @@
 "use strict";
 
 var sinon = require('sinon'),
+    Q = require('q'),
     expect = require('chai').expect,
     config = require('../config')[process.env.NODE_ENV],
     redis = require('redis').createClient(config.redis_port),
@@ -35,9 +36,11 @@ describe('Dialog', function () {
 
     describe('beginning', function () {
         it('should check wallet balance for required amount of money', function (done) {
-            var walletMock = sinon.mock(this.dialog.wallet);
+            var walletMock = sinon.mock(this.dialog.wallet),
+                deferred = Q.defer();
 
-            walletMock.expects('balance').once().returns(1);
+            walletMock.expects('balance').once().returns(deferred.promise);
+            deferred.resolve(1);
             
             this.dialog.start()
                 .then(function () {
@@ -47,7 +50,10 @@ describe('Dialog', function () {
         });
 
         it('should reject with error if account balance is too low', function (done) {
-            sinon.stub(this.dialog.wallet, 'balance').returns(0);
+            var deferred = Q.defer();
+
+            sinon.stub(this.dialog.wallet, 'balance').returns(deferred.promise);
+            deferred.resolve(0);
 
             this.dialog.start()
                 .then(function () {
