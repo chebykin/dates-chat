@@ -28,7 +28,7 @@ describe('Tracker', function () {
 
             this.tracker.on('tick', spy);
             this.tracker.start();
-            this.clock.tick(190000);
+            this.clock.tick(config.timeouts.inactive_timeout * 3 + 100);
 
             spy.should.have.been.calledThrice;
         });

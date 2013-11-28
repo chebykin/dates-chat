@@ -10,7 +10,8 @@ var config = {
             timeout: 1000
         },
         timeouts: {
-            manual_off_timeout: 1800000
+            manual_off_timeout: 1800000,
+            inactive_timeout: 30000
         }
     },
     test: {
@@ -24,7 +25,8 @@ var config = {
             timeout: 1000
         },
         timeouts: {
-            manual_off_timeout: 1800000
+            manual_off_timeout: 1800000,
+            inactive_timeout: 30000
         }
     },
     production: {
