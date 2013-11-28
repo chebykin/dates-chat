@@ -12,7 +12,8 @@ describe('Dialog', function () {
         this.second = 137;
         this.message_from_woman = {sender_id: this.first, recipient_id: this.second};
         this.message_from_man = {sender_id: this.second, recipient_id: this.first};
-        this.key = 'dialogs:' + this.second + '_' + this.first;
+        this.collection_key = this.second + '_' + this.first;
+        this.redis_key = 'dialogs:' + this.collection_key;
 
         women.all[this.first] = [{}, {}];
         men.all[this.second] = [{}, {}];
@@ -23,7 +24,7 @@ describe('Dialog', function () {
     });
 
     afterEach(function () {
-        redis.del(this.key);
+        redis.del(this.redis_key);
     });
 
     describe('constructor', function () {
@@ -79,7 +80,7 @@ describe('Dialog', function () {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
-                redis.del(this.key);
+                redis.del(this.redis_key);
                 sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
                 deferred.resolve(10);
 
@@ -93,13 +94,13 @@ describe('Dialog', function () {
                     })
                     .then(done, done);
             });
-            // TODO: last 30 minutes
+
             it("should start dialog immediately after first message from man, when " +
                 "last one is from woman and is sent at last 30 minutes", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
-                redis.rpush(this.key, JSON.stringify(this.message_from_woman));
+                redis.rpush(this.redis_key, JSON.stringify(this.message_from_woman));
                 sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
                 deferred.resolve(10);
 
@@ -142,7 +143,7 @@ describe('Dialog', function () {
                     var dialog = this.dialog,
                         deleteMock = sinon.mock(dialogs);
 
-                    deleteMock.expects('del').withArgs(this.key).once();
+                    deleteMock.expects('del').withArgs(this.collection_key).once();
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
@@ -159,6 +160,32 @@ describe('Dialog', function () {
 
     describe('closing', function () {
         it("can be initialized only by man or end money callback");
+        describe('manually', function () {
+            it("should switch dialog state to 'manual off'", function () {
+                var dialog = this.dialog;
+
+                dialog.state = 'on';
+                dialog.manual_off();
+
+                expect(dialog.state).to.equal('manual off');
+            });
+
+            it("should set callback that after 30 minutes destroys this dialog", function () {
+                dialogs.clear();
+                var dialog = dialogs.between(137, 103),
+                    clock = sinon.useFakeTimers();
+
+                expect(dialogs.collection.size).to.equal(1);
+                dialog.state = 'on';
+                clock.tick(1799999);
+                expect(dialogs.collection.size).to.equal(1);
+                dialog.manual_off();
+                clock.tick(1800010);
+                expect(dialogs.collection.size).to.equal(0);
+                clock.restore();
+                dialogs.clear();
+            });
+        });
     });
 
     describe('key generator ', function () {
@@ -174,7 +201,7 @@ describe('Dialog', function () {
 
     describe('after check for last message', function () {
         it('should woman callback if last message from woman', function (done) {
-            redis.rpush(this.key, JSON.stringify(this.message_from_woman));
+            redis.rpush(this.redis_key, JSON.stringify(this.message_from_woman));
 
             this.dialog.last_message_is_from(function () {
                 throw new Error('Man callback was called when should not');
@@ -184,7 +211,7 @@ describe('Dialog', function () {
         });
 
         it('should use man callback if last message from man', function (done) {
-            redis.rpush(this.key, JSON.stringify(this.message_from_man));
+            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
             this.dialog.last_message_is_from(function () {
                 done();
@@ -194,7 +221,7 @@ describe('Dialog', function () {
         });
 
         it('should use man callback if there is no any messages before', function (done) {
-            redis.del(this.key);
+            redis.del(this.redis_key);
 
             this.dialog.last_message_is_from(function () {
                 done();
@@ -207,11 +234,11 @@ describe('Dialog', function () {
             var dialog = this.dialog,
                 _test = this;
 
-            redis.rpush(this.key, JSON.stringify(this.message_from_man));
+            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
             dialog.last_message_is_from(function () {
                 expect(dialog.last_message_role).to.equal('man');
-                redis.rpush(_test.key, JSON.stringify(_test.message_from_woman));
+                redis.rpush(_test.redis_key, JSON.stringify(_test.message_from_woman));
 
                 dialog.last_message_is_from(function () {
                     throw new Error('Man callback was called when should not');

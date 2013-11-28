@@ -8,6 +8,9 @@ var config = {
             hostname: 'http://dev.bestuabrides.com/chat_api',
             port: 80,
             timeout: 1000
+        },
+        timeouts: {
+            manual_off_timeout: 1800000
         }
     },
     test: {
@@ -19,6 +22,9 @@ var config = {
             path: '/fake_api',
             port: 12345,
             timeout: 1000
+        },
+        timeouts: {
+            manual_off_timeout: 1800000
         }
     },
     production: {
