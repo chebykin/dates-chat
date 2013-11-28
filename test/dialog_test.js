@@ -75,43 +75,77 @@ describe('Dialog', function () {
     describe('continuing', function () {
 
         describe('while OFF state', function () {
-            it("man's message should switch state to 'initialized'", function (done) {
-                var dialog = this.dialog,
-                    deferred = Q.defer();
+            describe("man's message", function () {
+                beforeEach(function () {
+                    var deferred = Q.defer();
+                    sinon.stub(this.dialog.wallet, 'balance').returns(deferred.promise);
+                    deferred.resolve(10);
+                });
 
-                redis.del(this.redis_key);
-                sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
-                deferred.resolve(10);
+                it("should switch state to 'initialized'", function (done) {
+                    var dialog = this.dialog;
 
-                expect(dialog.state).to.equal('off');
-                dialog.deliver(this.message_from_man)
-                    .then(function () {
-                        expect(dialog.state).to.equal('initialized');
-                        expect(dialog.tracker.state).to.equal('off');
-                    })
-                    .fail(function () {
-                        throw new Error('Promise was rejected when should not');
-                    })
-                    .then(done, done);
+                    expect(dialog.state).to.equal('off');
+
+                    dialog.deliver(this.message_from_man)
+                        .then(function () {
+                            expect(dialog.state).to.equal('initialized');
+                            expect(dialog.tracker.state).to.equal('off');
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
+
+                it("should set man_active property of dialog to true", function (done) {
+                    var dialog = this.dialog;
+
+                    dialog.deliver(this.message_from_man)
+                        .then(function () {
+                            expect(dialog.man_active).to.equal(true);
+                            expect(dialog.woman_active).to.equal(false);
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
             });
 
-            it("woman's message should switch state to 'initialized' anyway", function (done) {
-                var dialog = this.dialog,
-                    startMock = sinon.mock(dialog);
+            describe("woman's message", function () {
+                it("should switch state to 'initialized' anyway", function (done) {
+                    var dialog = this.dialog,
+                        startMock = sinon.mock(dialog);
 
-                startMock.expects('start').never();
-                expect(dialog.state).to.equal('off');
+                    startMock.expects('start').never();
+                    expect(dialog.state).to.equal('off');
 
-                dialog.deliver(this.message_from_woman)
-                    .then(function () {
-                        expect(dialog.state).to.equal('initialize');
-                        expect(dialog.tracker.state).to.equal('off');
-                        startMock.verify();
-                    })
-                    .fail(function () {
-                        throw new Error('Promise was rejected when should not');
-                    })
-                    .then(done, done);
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            expect(dialog.state).to.equal('initialize');
+                            expect(dialog.tracker.state).to.equal('off');
+                            startMock.verify();
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
+
+                it("should set woman_active property to true", function (done) {
+                    var dialog = this.dialog;
+
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            expect(dialog.man_active).to.equal(false);
+                            expect(dialog.woman_active).to.equal(true);
+                        })
+                        .fail(function (e) {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
             });
 
             it('should call delete method on collection after delivery or store', function (done) {
