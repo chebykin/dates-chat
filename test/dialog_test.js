@@ -3,7 +3,8 @@
 var men = require('../lib/user').men,
     women = require('../lib/user').women,
     redis = require('redis').createClient(config.redis_port),
-    Dialog = require('../lib/dialog');
+    Dialog = require('../lib/dialog'),
+    dialogs = require('../lib/dialogs_collection');
 
 describe('Dialog', function () {
     before(function () {
@@ -19,6 +20,10 @@ describe('Dialog', function () {
 
     beforeEach(function () {
         this.dialog = new Dialog(137, 103);
+    });
+
+    afterEach(function () {
+        redis.del(this.key);
     });
 
     describe('constructor', function () {
@@ -68,9 +73,6 @@ describe('Dialog', function () {
     });
 
     describe('continuing', function () {
-        beforeEach(function () {
-            this.message = {recipient_id: this.first, text: 'blahblah'};
-        });
 
         describe('as man', function () {
             it("should not start dialog after first message from man, when last one doesn't exists", function (done) {
@@ -82,8 +84,7 @@ describe('Dialog', function () {
                 deferred.resolve(10);
 
                 expect(dialog.state).to.equal('off');
-
-                dialog.deliver(this.message)
+                dialog.deliver(this.message_from_man)
                     .then(function () {
                         expect(dialog.state).to.equal('initialized');
                     })
@@ -92,8 +93,9 @@ describe('Dialog', function () {
                     })
                     .then(done, done);
             });
-
-            it("should start dialog immediately after first message from man, when last one is from woman", function (done) {
+            // TODO: last 30 minutes
+            it("should start dialog immediately after first message from man, when " +
+                "last one is from woman and is sent at last 30 minutes", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
@@ -103,7 +105,7 @@ describe('Dialog', function () {
 
                 expect(dialog.state).to.equal('off');
 
-                dialog.deliver(this.message)
+                dialog.deliver(this.message_from_man)
                     .then(function () {
                         expect(dialog.state).to.equal('on');
                         expect(dialog.tracker.state).to.equal('on');
@@ -116,7 +118,42 @@ describe('Dialog', function () {
         });
 
         describe('as woman', function () {
+            describe('when creating a new dialog', function () {
+                it("should not call start method", function (done) {
+                    var dialog = this.dialog,
+                        startMock = sinon.mock(dialog);
 
+                    startMock.expects('start').never();
+                    expect(dialog.state).to.equal('off');
+
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            expect(dialog.state).to.equal('initialize');
+                            expect(dialog.tracker.state).to.equal('off');
+                            startMock.verify();
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
+
+                it('should call delete method on collection after delivery or store', function (done) {
+                    var dialog = this.dialog,
+                        deleteMock = sinon.mock(dialogs);
+
+                    deleteMock.expects('delete').withArgs(this.key).once();
+
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            deleteMock.verify();
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
+            });
         });
     });
 
@@ -140,7 +177,7 @@ describe('Dialog', function () {
             redis.rpush(this.key, JSON.stringify(this.message_from_woman));
 
             this.dialog.last_message_is_from(function () {
-                throw new Error('Success callback was called when should not');
+                throw new Error('Man callback was called when should not');
             }, function () {
                 done();
             });
@@ -152,7 +189,7 @@ describe('Dialog', function () {
             this.dialog.last_message_is_from(function () {
                 done();
             }, function () {
-                throw new Error('Success callback was called when should not');
+                throw new Error('Woman callback was called when should not');
             });
         });
 
@@ -162,7 +199,28 @@ describe('Dialog', function () {
             this.dialog.last_message_is_from(function () {
                 done();
             }, function () {
-                throw new Error('Success callback was called when should not');
+                throw new Error('Woman callback was called when should not');
+            });
+        });
+
+        it('should set last_message_role property of instance', function (done) {
+            var dialog = this.dialog,
+                _test = this;
+
+            redis.rpush(this.key, JSON.stringify(this.message_from_man));
+
+            dialog.last_message_is_from(function () {
+                expect(dialog.last_message_role).to.equal('man');
+                redis.rpush(_test.key, JSON.stringify(_test.message_from_woman));
+
+                dialog.last_message_is_from(function () {
+                    throw new Error('Man callback was called when should not');
+                }, function () {
+                    expect(dialog.last_message_role).to.equal('woman');
+                    done();
+                });
+            }, function () {
+                throw new Error('Woman callback was called when should not');
             });
         });
     });
