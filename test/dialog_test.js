@@ -70,13 +70,12 @@ describe('Dialog', function () {
                 })
                 .then(done, done);
         });
-        it('should check for previous message and if it from woman, start immediately');
     });
 
     describe('continuing', function () {
 
-        describe('as man', function () {
-            it("should not start dialog after first message from man, when last one doesn't exists", function (done) {
+        describe('while OFF state', function () {
+            it("man's message should switch state to 'initialized'", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
@@ -88,6 +87,7 @@ describe('Dialog', function () {
                 dialog.deliver(this.message_from_man)
                     .then(function () {
                         expect(dialog.state).to.equal('initialized');
+                        expect(dialog.tracker.state).to.equal('off');
                     })
                     .fail(function () {
                         throw new Error('Promise was rejected when should not');
@@ -95,7 +95,44 @@ describe('Dialog', function () {
                     .then(done, done);
             });
 
-            it("should start dialog immediately after first message from man, when " +
+            it("woman's message should switch state to 'initialized' anyway", function (done) {
+                var dialog = this.dialog,
+                    startMock = sinon.mock(dialog);
+
+                startMock.expects('start').never();
+                expect(dialog.state).to.equal('off');
+
+                dialog.deliver(this.message_from_woman)
+                    .then(function () {
+                        expect(dialog.state).to.equal('initialize');
+                        expect(dialog.tracker.state).to.equal('off');
+                        startMock.verify();
+                    })
+                    .fail(function () {
+                        throw new Error('Promise was rejected when should not');
+                    })
+                    .then(done, done);
+            });
+
+            it('should call delete method on collection after delivery or store', function (done) {
+                var dialog = this.dialog,
+                    deleteMock = sinon.mock(dialogs);
+
+                deleteMock.expects('del').withArgs(this.collection_key).once();
+
+                dialog.deliver(this.message_from_woman)
+                    .then(function () {
+                        deleteMock.verify();
+                    })
+                    .fail(function () {
+                        throw new Error('Promise was rejected when should not');
+                    })
+                    .then(done, done);
+            });
+        });
+
+        describe("while INITIALIZED state", function () {
+            it("should start dialog immediately after sending first message, when " +
                 "last one is from woman and is sent at last 30 minutes", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
@@ -111,49 +148,10 @@ describe('Dialog', function () {
                         expect(dialog.state).to.equal('on');
                         expect(dialog.tracker.state).to.equal('on');
                     })
-                    .fail(function (e) {
+                    .fail(function () {
                         throw new Error('Promise was rejected when should not');
                     })
                     .then(done, done);
-            });
-        });
-
-        describe('as woman', function () {
-            describe('when creating a new dialog', function () {
-                it("should not call start method", function (done) {
-                    var dialog = this.dialog,
-                        startMock = sinon.mock(dialog);
-
-                    startMock.expects('start').never();
-                    expect(dialog.state).to.equal('off');
-
-                    dialog.deliver(this.message_from_woman)
-                        .then(function () {
-                            expect(dialog.state).to.equal('initialize');
-                            expect(dialog.tracker.state).to.equal('off');
-                            startMock.verify();
-                        })
-                        .fail(function () {
-                            throw new Error('Promise was rejected when should not');
-                        })
-                        .then(done, done);
-                });
-
-                it('should call delete method on collection after delivery or store', function (done) {
-                    var dialog = this.dialog,
-                        deleteMock = sinon.mock(dialogs);
-
-                    deleteMock.expects('del').withArgs(this.collection_key).once();
-
-                    dialog.deliver(this.message_from_woman)
-                        .then(function () {
-                            deleteMock.verify();
-                        })
-                        .fail(function () {
-                            throw new Error('Promise was rejected when should not');
-                        })
-                        .then(done, done);
-                });
             });
         });
     });
