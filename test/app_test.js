@@ -1,6 +1,4 @@
 var app = require('../app.js'),
-    should = require('should'),
-    sinon = require('sinon'),
     utils = require('../lib/utils'),
     sessions = require('../actions/sessions'),
     WebSocket = require('ws'),
@@ -19,7 +17,7 @@ describe('Chat app', function () {
         var hanleStub = sinon.stub(app, 'handle').returns(true);
         var ws = new WebSocket('ws://localhost:' + port);
         ws.on('open', function () {
-            ws.readyState.should.be.eql(WebSocket.OPEN);
+            expect(ws.readyState).to.equal(WebSocket.OPEN);
             ws.close();
             hanleStub.restore();
             done();
@@ -28,7 +26,7 @@ describe('Chat app', function () {
 
     it('can set any property from app', function () {
         app.set('13', 'my_val');
-        app.settings['13'].should.be.eql('my_val');
+        expect(app.settings['13']).to.equal('my_val');
     });
 
 });

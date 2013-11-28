@@ -1,8 +1,5 @@
-var should = require('should'),
-    sinon = require('sinon'),
-    WebSocket = require('ws'),
+var WebSocket = require('ws'),
     PublicError = require('../lib/errors').public,
-    PrivateError = require('../lib/errors').private,
     port = 20300;
 
 describe('Application', function () {
@@ -41,8 +38,8 @@ describe('Application', function () {
 
         application.handle({}, 'messages', 'get', 'payload payload');
 
-        messages_handler.called.should.be.ok;
-        online_users_handler.called.should.not.be.ok;
+        messages_handler.should.have.been.calledOnce;
+        online_users_handler.should.not.have.been.calledOnce;
     });
 
     it("should notify about PublicError via websocket", function (done) {
@@ -67,7 +64,7 @@ describe('Application', function () {
         ws.on('message', function (data) {
             JSON.parse(data).should.be.eql({reason: 'error', description: error_text});
             done();
-        })
+        });
 
     });
 });

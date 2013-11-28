@@ -1,9 +1,3 @@
 {
-    "node": true,
-    "globals": {
-        "describe": false,
-        "it": false,
-        "beforeEach": false,
-        "before": false
-    }
+    "node": true
 }

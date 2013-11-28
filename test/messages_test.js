@@ -1,7 +1,5 @@
 var messages = require('../actions/messages'),
-    config = config = require('../config')[process.env.NODE_ENV],
     WebSocket = require('ws'),
-    sinon = require('sinon'),
     Redis = require('redis'),
     redis = Redis.createClient(config.redis_port),
     women = require('../lib/user').women,

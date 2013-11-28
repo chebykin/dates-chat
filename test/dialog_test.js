@@ -1,12 +1,8 @@
 "use strict";
 
-var sinon = require('sinon'),
-    Q = require('q'),
-    expect = require('chai').expect,
-    config = require('../config')[process.env.NODE_ENV],
-    redis = require('redis').createClient(config.redis_port),
-    men = require('../lib/user').men,
+var men = require('../lib/user').men,
     women = require('../lib/user').women,
+    redis = require('redis').createClient(config.redis_port),
     Dialog = require('../lib/dialog');
 
 describe('Dialog', function () {
@@ -68,15 +64,42 @@ describe('Dialog', function () {
     });
 
     describe('continuing', function () {
+        beforeEach(function () {
+            this.message = {recipient_id: this.first, text: 'blahblah'};
+        });
+
         describe('as man', function () {
-            it.skip("should not start dialog after first message from man, when last one doesn't exists", function (done) {
-                var dialog = this.dialog;
+            it("should not start dialog after first message from man, when last one doesn't exists", function (done) {
+                var dialog = this.dialog,
+                    deferred = Q.defer();
 
-                expect(dialog.state).to.equal('initialized');
+                sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
+                deferred.resolve(10);
 
-                dialog.deliver('man')
+                expect(dialog.state).to.equal('off');
+
+                dialog.deliver(this.message)
                     .then(function () {
-                        expect(dialog.state).to.equal('started');
+                        expect(dialog.state).to.equal('initialized');
+                    })
+                    .fail(function () {
+                        throw new Error('Promise was rejected when should not');
+                    })
+                    .then(done, done);
+            });
+
+            it.skip("should start dialog immediately after first message from man, when last one is from woman", function (done) {
+                var dialog = this.dialog,
+                    deferred = Q.defer();
+
+                sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
+                deferred.resolve(10);
+
+                expect(dialog.state).to.equal('off');
+
+                dialog.deliver(this.message)
+                    .then(function () {
+                        expect(dialog.state).to.equal('initialized');
                     })
                     .fail(function () {
                         throw new Error('Promise was rejected when should not');
@@ -88,6 +111,10 @@ describe('Dialog', function () {
         describe('as woman', function () {
 
         });
+    });
+
+    describe('status', function () {
+
     });
 
     describe('closing', function () {
@@ -104,4 +131,45 @@ describe('Dialog', function () {
             expect(this.dialog.key()).to.equal('dialogs:' + this.second + '_' + this.first);
         });
     });
+
+    describe('after check for last message', function () {
+        before(function () {
+            this.key = 'dialogs:' + this.second + '_' + this.first;
+        });
+
+        it('should woman callback if last message from woman', function (done) {
+            var message_from_woman = {sender_id: this.first, recipient_id: this.second};
+
+            redis.rpush(this.key, JSON.stringify(message_from_woman));
+
+            this.dialog.last_message_is_from(function () {
+                throw new Error('Success callback was called when should not');
+            }, function () {
+                done();
+            });
+        });
+
+        it('should use man callback if last message from man', function (done) {
+            var message_from_man = {sender_id: this.second, recipient_id: this.first};
+
+            redis.rpush(this.key, JSON.stringify(message_from_man));
+
+            this.dialog.last_message_is_from(function () {
+                done();
+            }, function () {
+                throw new Error('Success callback was called when should not');
+            });
+        });
+
+        it('should use man callback if there is no any messages before', function (done) {
+            redis.del(this.key);
+
+            this.dialog.last_message_is_from(function () {
+                done();
+            }, function () {
+                throw new Error('Success callback was called when should not');
+            });
+        });
+    });
+
 });

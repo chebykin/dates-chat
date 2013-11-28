@@ -1,0 +1,17 @@
+{
+    "node": true,
+    "globals": {
+        "describe": false,
+        "it": false,
+        "beforeEach": false,
+        "before": false,
+
+        "config": false,
+        "sinon": false,
+        "chai": false,
+        "expect": false,
+        "should": false,
+        "Q": false
+    }
+}
+

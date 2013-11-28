@@ -1,6 +1,4 @@
-var config = require('../config')[process.env.NODE_ENV],
-    expect = require('chai').expect,
-    nock = require('nock'),
+var nock = require('nock'),
     Wallet = require('../lib/wallet');
 
 describe('Wallet', function () {

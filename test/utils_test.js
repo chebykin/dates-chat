@@ -2,8 +2,7 @@
 
 var utils = require('../lib/utils'),
     men = require('../lib/user').men,
-    women = require('../lib/user').women,
-    should = require('should');
+    women = require('../lib/user').women;
 
 describe('Utils', function () {
     describe('message2object', function () {

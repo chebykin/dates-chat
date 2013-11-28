@@ -1,7 +1,6 @@
 "user strict";
 
-var men = require('../lib/user').men,
-    expect = require('chai').expect;
+var men = require('../lib/user').men;
 
 describe('User', function () {
     it('should return all keys (integer) for online users', function () {
