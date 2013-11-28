@@ -93,19 +93,4 @@ describe('Messages', function () {
         });
 
     });
-
-    it('should return key for dialogs', function () {
-        var first = 100,
-            second = 200;
-
-        men.all[first] = [{}, {}];
-        women.all[second] = [{}, {}];
-
-        men.dialog_key_for_online_users(first, second).should.eql('dialogs:100_200');
-        men.dialog_key_for_online_users(second, first).should.eql('dialogs:100_200');
-        women.dialog_key_for_online_users(second, first).should.eql('dialogs:100_200');
-        women.dialog_key_for_online_users(second, first).should.eql('dialogs:100_200');
-        women.dialog_key_for_online_users(second, undefined).should.throw('Messages: one of arguments is not integer.');
-        women.dialog_key_for_online_users(undefined, second).should.throw('Messages: one of arguments is not integer.');
-    });
 });

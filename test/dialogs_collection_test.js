@@ -5,6 +5,6 @@ var dialogs = require('../lib/dialogs_collection'),
 
 describe('Dialogs collection', function () {
     it('should create new dialog instance if dialog does not exists', function () {
-        expect(dialogs.get('137_103')).to.be.an.instanceof(Dialog);
+        expect(dialogs.between(103, '137')).to.be.an.instanceof(Dialog);
     });
 });
