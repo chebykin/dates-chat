@@ -9,6 +9,10 @@ describe('Dialog', function () {
     before(function () {
         this.first = 103;
         this.second = 137;
+        this.message_from_woman = {sender_id: this.first, recipient_id: this.second};
+        this.message_from_man = {sender_id: this.second, recipient_id: this.first};
+        this.key = 'dialogs:' + this.second + '_' + this.first;
+
         women.all[this.first] = [{}, {}];
         men.all[this.second] = [{}, {}];
     });
@@ -73,6 +77,7 @@ describe('Dialog', function () {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
+                redis.del(this.key);
                 sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
                 deferred.resolve(10);
 
@@ -88,10 +93,11 @@ describe('Dialog', function () {
                     .then(done, done);
             });
 
-            it.skip("should start dialog immediately after first message from man, when last one is from woman", function (done) {
+            it("should start dialog immediately after first message from man, when last one is from woman", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
 
+                redis.rpush(this.key, JSON.stringify(this.message_from_woman));
                 sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
                 deferred.resolve(10);
 
@@ -99,9 +105,10 @@ describe('Dialog', function () {
 
                 dialog.deliver(this.message)
                     .then(function () {
-                        expect(dialog.state).to.equal('initialized');
+                        expect(dialog.state).to.equal('on');
+                        expect(dialog.tracker.state).to.equal('on');
                     })
-                    .fail(function () {
+                    .fail(function (e) {
                         throw new Error('Promise was rejected when should not');
                     })
                     .then(done, done);
@@ -111,10 +118,6 @@ describe('Dialog', function () {
         describe('as woman', function () {
 
         });
-    });
-
-    describe('status', function () {
-
     });
 
     describe('closing', function () {
@@ -133,14 +136,8 @@ describe('Dialog', function () {
     });
 
     describe('after check for last message', function () {
-        before(function () {
-            this.key = 'dialogs:' + this.second + '_' + this.first;
-        });
-
         it('should woman callback if last message from woman', function (done) {
-            var message_from_woman = {sender_id: this.first, recipient_id: this.second};
-
-            redis.rpush(this.key, JSON.stringify(message_from_woman));
+            redis.rpush(this.key, JSON.stringify(this.message_from_woman));
 
             this.dialog.last_message_is_from(function () {
                 throw new Error('Success callback was called when should not');
@@ -150,9 +147,7 @@ describe('Dialog', function () {
         });
 
         it('should use man callback if last message from man', function (done) {
-            var message_from_man = {sender_id: this.second, recipient_id: this.first};
-
-            redis.rpush(this.key, JSON.stringify(message_from_man));
+            redis.rpush(this.key, JSON.stringify(this.message_from_man));
 
             this.dialog.last_message_is_from(function () {
                 done();
