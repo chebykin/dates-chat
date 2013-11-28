@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "start": "NODE_ENV=development node app.js --harmony"
+        "start": "NODE_ENV=development node --harmony app.js"
     },
     "devDependencies": {
         "mocha": "*",
@@ -21,5 +21,6 @@
         "hat": "*",
         "q": "*",
         "underscore": "*"
-    }
+    },
+    "engine": "node >= 0.11.x"
 }

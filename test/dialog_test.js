@@ -142,7 +142,7 @@ describe('Dialog', function () {
                     var dialog = this.dialog,
                         deleteMock = sinon.mock(dialogs);
 
-                    deleteMock.expects('delete').withArgs(this.key).once();
+                    deleteMock.expects('del').withArgs(this.key).once();
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
