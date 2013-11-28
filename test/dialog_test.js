@@ -48,7 +48,7 @@ describe('Dialog', function () {
             walletMock.expects('balance').once().returns(deferred.promise);
             deferred.resolve(1);
             
-            this.dialog.start()
+            this.dialog.initialize_man()
                 .then(function () {
                     walletMock.verify();
                 })
@@ -61,7 +61,7 @@ describe('Dialog', function () {
             sinon.stub(this.dialog.wallet, 'balance').returns(deferred.promise);
             deferred.resolve(0);
 
-            this.dialog.start()
+            this.dialog.initialize_man()
                 .then(function () {
                     throw new Error('No promise was rejected when it should.');
                 })
@@ -118,7 +118,7 @@ describe('Dialog', function () {
                     var dialog = this.dialog,
                         startMock = sinon.mock(dialog);
 
-                    startMock.expects('start').never();
+                    startMock.expects('initialize_man').never();
                     expect(dialog.state).to.equal('off');
 
                     dialog.deliver(this.message_from_woman)
@@ -166,7 +166,7 @@ describe('Dialog', function () {
         });
 
         describe("while INITIALIZED state", function () {
-            it("should start dialog immediately after sending first message, when " +
+            it("should initialize dialog immediately after sending first message, when " +
                 "last one is from woman and is sent at last 30 minutes", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
