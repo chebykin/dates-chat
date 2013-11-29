@@ -186,11 +186,14 @@ describe('Dialog', function () {
             describe("woman's message", function () {
                 it("should start dialog and inactive timeout", function (done) {
                     var dialog = this.dialog,
-                        inactiveTimeoutMock = sinon.mock(dialog.tracker);
+                        inactiveTimeoutMock = sinon.mock(dialog.tracker),
+                        deferred = Q.defer();
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').once();
                     dialog.state = 'initialized';
                     redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+                    sinon.stub(dialog.wallet, 'charge').returns(deferred.promise);
+                    deferred.resolve(10);
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
@@ -204,6 +207,14 @@ describe('Dialog', function () {
         });
 
         describe("while ON state", function () {
+            beforeEach(function () {
+                this.deferred = Q.defer();
+                this.dialog.state = 'initialized';
+                redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+                sinon.stub(this.dialog.wallet, 'charge').returns(this.deferred.promise);
+                this.deferred.resolve(10);
+            });
+
             describe("man's message", function () {
                 it('should reset inactive timeout', function (done) {
                     var dialog = this.dialog,
@@ -211,8 +222,6 @@ describe('Dialog', function () {
                         inactiveTimeoutMock = sinon.mock(dialog.tracker);
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
-                    dialog.state = 'initialized';
-                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
@@ -228,8 +237,11 @@ describe('Dialog', function () {
                 it("should set callback that after 5 inactive minutes destroys this dialog", function (done) {
                     dialogs.clear();
                     var dialog = dialogs.between(137, 103),
+                        deferred = Q.defer(),
                         clock = sinon.useFakeTimers();
 
+                    sinon.stub(dialog.wallet, 'charge').returns(deferred.promise);
+                    deferred.resolve(10);
                     dialog.last_message_role = 'woman';
                     dialog.start();
                     clock.tick(1);
@@ -252,8 +264,6 @@ describe('Dialog', function () {
                         inactiveTimeoutMock = sinon.mock(dialog.tracker);
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
-                    dialog.state = 'initialized';
-                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
@@ -380,6 +390,27 @@ describe('Dialog', function () {
             }, function () {
                 throw new Error('Woman callback was called when should not');
             });
+        });
+    });
+
+    describe('charges', function () {
+        it('should be happened every tick', function (done) {
+            var dialog = this.dialog,
+                deferred = Q.defer(),
+                chargeMock = sinon.mock(this.dialog.wallet);
+
+            dialog.state = 'initialized';
+            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+            chargeMock.expects('charge').thrice().returns(deferred.promise);
+            deferred.resolve(10);
+
+            dialog.start()
+                .then(function () {
+                    dialog.tick_handler();
+                    dialog.tick_handler();
+                    chargeMock.verify();
+                })
+                .fail(bad_fail).then(done, done);
         });
     });
 });
