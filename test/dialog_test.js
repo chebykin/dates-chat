@@ -144,22 +144,22 @@ describe('Dialog', function () {
                         })
                         .then(done, done);
                 });
-            });
 
-            it('should call delete method on collection after delivery or store', function (done) {
-                var dialog = this.dialog,
-                    deleteMock = sinon.mock(dialogs);
+                it('should call delete method on collection after delivery or store', function (done) {
+                    var dialog = this.dialog,
+                        deleteMock = sinon.mock(dialogs);
 
-                deleteMock.expects('del').withArgs(this.collection_key).once();
+                    deleteMock.expects('del').withArgs(this.collection_key).once();
 
-                dialog.deliver(this.message_from_woman)
-                    .then(function () {
-                        deleteMock.verify();
-                    })
-                    .fail(function () {
-                        throw new Error('Promise was rejected when should not');
-                    })
-                    .then(done, done);
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            deleteMock.verify();
+                        })
+                        .fail(function () {
+                            throw new Error('Promise was rejected when should not');
+                        })
+                        .then(done, done);
+                });
             });
         });
 
