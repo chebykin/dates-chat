@@ -12,7 +12,9 @@
         "chai": false,
         "expect": false,
         "should": false,
-        "Q": false
+        "Q": false,
+
+        "bad_fail": false
     }
 }
 

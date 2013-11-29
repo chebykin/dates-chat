@@ -114,7 +114,7 @@ describe('Dialog', function () {
             });
 
             describe("woman's message", function () {
-                it("should switch state to 'initialized' anyway", function (done) {
+                it("should keep 'off' state", function (done) {
                     var dialog = this.dialog,
                         startMock = sinon.mock(dialog);
 
@@ -123,13 +123,11 @@ describe('Dialog', function () {
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
-                            expect(dialog.state).to.equal('initialize');
+                            expect(dialog.state).to.equal('off');
                             expect(dialog.tracker.state).to.equal('off');
                             startMock.verify();
                         })
-                        .fail(function () {
-                            throw new Error('Promise was rejected when should not');
-                        })
+                        .fail(bad_fail)
                         .then(done, done);
                 });
 
