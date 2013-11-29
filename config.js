@@ -10,8 +10,9 @@ var config = {
             timeout: 1000
         },
         timeouts: {
-            manual_off_timeout: 1800000,
-            inactive_timeout: 30000
+            manual_off_timeout: 1800000, // 30 minutes
+            inactive_timeout: 300000, // 5 minutes
+            charge_interval: 60000 // 1 minute
         }
     },
     test: {
@@ -26,7 +27,8 @@ var config = {
         },
         timeouts: {
             manual_off_timeout: 1800000,
-            inactive_timeout: 30000
+            inactive_timeout: 300000,
+            charge_interval: 60000
         }
     },
     production: {

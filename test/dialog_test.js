@@ -184,9 +184,11 @@ describe('Dialog', function () {
             });
 
             describe("woman's message", function () {
-                it("should start dialog", function (done) {
-                    var dialog = this.dialog;
+                it("should start dialog and inactive timeout", function (done) {
+                    var dialog = this.dialog,
+                        inactiveTimeoutMock = sinon.mock(dialog);
 
+                    inactiveTimeoutMock.expects('reset_inactive_timeout').once();
                     dialog.state = 'initialized';
                     redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
@@ -194,31 +196,56 @@ describe('Dialog', function () {
                         .then(function () {
                             expect(dialog.state).to.equal('on');
                             expect(dialog.tracker.state).to.equal('on');
+                            inactiveTimeoutMock.verify();
+                        })
+                        .fail(bad_fail).then(done, done);
+                });
+            });
+        });
+
+        describe("while ON state", function () {
+            describe("man's message", function () {
+                it('should reset inactive timeout', function (done) {
+                    var dialog = this.dialog,
+                        test = this,
+                        inactiveTimeoutMock = sinon.mock(dialog);
+
+                    inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
+                    dialog.state = 'initialized';
+                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            dialog.deliver(test.message_from_man)
+                                .then(function () {
+                                    inactiveTimeoutMock.verify();
+                                })
+                                .fail(bad_fail);
                         })
                         .fail(bad_fail).then(done, done);
                 });
             });
 
-            it.skip("should initialize dialog immediately after sending first message, when " +
-                "last one is from woman and is sent at last 30 minutes", function (done) {
-                var dialog = this.dialog,
-                    deferred = Q.defer();
+            describe("woman's message", function () {
+                it('should reset inactive timeout', function (done) {
+                    var dialog = this.dialog,
+                        test = this,
+                        inactiveTimeoutMock = sinon.mock(dialog);
 
-                redis.rpush(this.redis_key, JSON.stringify(this.message_from_woman));
-                sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
-                deferred.resolve(10);
+                    inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
+                    dialog.state = 'initialized';
+                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
-                expect(dialog.state).to.equal('off');
-
-                dialog.deliver(this.message_from_man)
-                    .then(function () {
-                        expect(dialog.state).to.equal('on');
-                        expect(dialog.tracker.state).to.equal('on');
-                    })
-                    .fail(function () {
-                        throw new Error('Promise was rejected when should not');
-                    })
-                    .then(done, done);
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            dialog.deliver(test.message_from_woman)
+                                .then(function () {
+                                    inactiveTimeoutMock.verify();
+                                })
+                                .fail(bad_fail);
+                        })
+                        .fail(bad_fail).then(done, done);
+                });
             });
         });
     });
