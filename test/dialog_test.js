@@ -316,6 +316,31 @@ describe('Dialog', function () {
                     })
                     .fail(bad_fail).then(done, done);
             });
+
+            it("woman's message should immediately start dialog", function (done) {
+                var dialog = this.dialog;
+
+                expect(dialog.state).to.equal('manual off');
+
+                dialog.deliver(this.message_from_woman)
+                    .then(function () {
+                        expect(dialog.state).to.equal('manual off');
+                    })
+                    .fail(bad_fail).then(done, done);
+            });
+
+            it("woman's message should not remove manual off timeout", function (done) {
+                var dialog = this.dialog,
+                    trackerMock = sinon.mock(dialog.tracker);
+
+                trackerMock.expects('remove_manual_off_timeout').never();
+
+                dialog.deliver(this.message_from_woman)
+                    .then(function () {
+                        trackerMock.verify();
+                    })
+                    .fail(bad_fail).then(done, done);
+            });
         });
     });
 
