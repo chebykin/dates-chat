@@ -186,7 +186,7 @@ describe('Dialog', function () {
             describe("woman's message", function () {
                 it("should start dialog and inactive timeout", function (done) {
                     var dialog = this.dialog,
-                        inactiveTimeoutMock = sinon.mock(dialog);
+                        inactiveTimeoutMock = sinon.mock(dialog.tracker);
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').once();
                     dialog.state = 'initialized';
@@ -208,7 +208,7 @@ describe('Dialog', function () {
                 it('should reset inactive timeout', function (done) {
                     var dialog = this.dialog,
                         test = this,
-                        inactiveTimeoutMock = sinon.mock(dialog);
+                        inactiveTimeoutMock = sinon.mock(dialog.tracker);
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
                     dialog.state = 'initialized';
@@ -224,13 +224,32 @@ describe('Dialog', function () {
                         })
                         .fail(bad_fail).then(done, done);
                 });
+
+                it("should set callback that after 5 inactive minutes destroys this dialog", function (done) {
+                    dialogs.clear();
+                    var dialog = dialogs.between(137, 103),
+                        clock = sinon.useFakeTimers();
+
+                    dialog.last_message_role = 'woman';
+                    dialog.start();
+                    clock.tick(1);
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            expect(dialogs.collection.size).to.equal(1);
+                            clock.tick(300010);
+                            expect(dialogs.collection.size).to.equal(0);
+                            clock.restore();
+                            dialogs.clear();
+                        })
+                        .fail(bad_fail).then(done, done);
+                });
             });
 
             describe("woman's message", function () {
                 it('should reset inactive timeout', function (done) {
                     var dialog = this.dialog,
                         test = this,
-                        inactiveTimeoutMock = sinon.mock(dialog);
+                        inactiveTimeoutMock = sinon.mock(dialog.tracker);
 
                     inactiveTimeoutMock.expects('reset_inactive_timeout').twice();
                     dialog.state = 'initialized';
@@ -251,7 +270,6 @@ describe('Dialog', function () {
     });
 
     describe('closing', function () {
-        it("can be initialized only by man or end money callback");
         describe('manually', function () {
             it("should switch dialog state to 'manual off' if last message role is woman", function () {
                 var dialog = this.dialog;
@@ -364,5 +382,4 @@ describe('Dialog', function () {
             });
         });
     });
-
 });
