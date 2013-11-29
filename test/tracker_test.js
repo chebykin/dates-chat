@@ -32,8 +32,16 @@ describe('Tracker', function () {
 
             spy.should.have.been.calledThrice;
         });
+
+        it('should be able remove remove manual off callback', function () {
+            var spy = sinon.spy();
+
+            this.tracker.on('manual_off_timeout', spy);
+            this.tracker.start_manual_off_timeout();
+            this.tracker.remove_manual_off_timeout();
+            this.clock.tick(config.timeouts.manual_off_timeout + 100);
+
+            spy.should.not.have.been.called;
+        });
     });
-
-
-
 });

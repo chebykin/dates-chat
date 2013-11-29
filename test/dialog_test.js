@@ -277,6 +277,46 @@ describe('Dialog', function () {
                 });
             });
         });
+
+        describe("while MANUAL OFF state", function () {
+            beforeEach(function () {
+                this.deferred = Q.defer();
+                this.dialog.state = 'initialized';
+
+                this.dialog.last_message_role = 'woman';
+                redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+                sinon.stub(this.dialog.wallet, 'charge').returns(this.deferred.promise);
+                this.deferred.resolve(10);
+
+                this.dialog.start();
+                this.dialog.manual_off();
+            });
+
+            it("man's message should immediately start dialog", function (done) {
+                var dialog = this.dialog;
+
+                expect(dialog.state).to.equal('manual off');
+
+                dialog.deliver(this.message_from_man)
+                    .then(function () {
+                        expect(dialog.state).to.equal('on');
+                    })
+                    .fail(bad_fail).then(done, done);
+            });
+
+            it("man's message should remove manual off timeout", function (done) {
+                var dialog = this.dialog,
+                    trackerMock = sinon.mock(dialog.tracker);
+
+                trackerMock.expects('remove_manual_off_timeout').once();
+
+                dialog.deliver(this.message_from_man)
+                    .then(function () {
+                        trackerMock.verify();
+                    })
+                    .fail(bad_fail).then(done, done);
+            });
+        });
     });
 
     describe('closing', function () {
