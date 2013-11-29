@@ -193,9 +193,10 @@ describe('Dialog', function () {
     describe('closing', function () {
         it("can be initialized only by man or end money callback");
         describe('manually', function () {
-            it("should switch dialog state to 'manual off'", function () {
+            it("should switch dialog state to 'manual off' if last message role is woman", function () {
                 var dialog = this.dialog;
 
+                dialog.last_message_role = 'woman';
                 dialog.state = 'on';
                 dialog.manual_off();
 
@@ -208,6 +209,7 @@ describe('Dialog', function () {
                     clock = sinon.useFakeTimers();
 
                 expect(dialogs.collection.size).to.equal(1);
+                dialog.last_message_role = 'woman';
                 dialog.state = 'on';
                 clock.tick(1799999);
                 expect(dialogs.collection.size).to.equal(1);
@@ -216,6 +218,25 @@ describe('Dialog', function () {
                 expect(dialogs.collection.size).to.equal(0);
                 clock.restore();
                 dialogs.clear();
+            });
+
+            it("should use standard close method if last message is from him", function (done) {
+                dialogs.clear();
+                var dialog = dialogs.between(137, 103),
+                    dialogsMock = sinon.mock(dialogs);
+
+                dialogsMock.expects('del').withArgs('137_103').once();
+
+                dialog.last_message_role = 'man';
+                dialog.state = 'on';
+
+                setTimeout(function () {
+                    dialogsMock.verify();
+                    dialogs.clear();
+                    done();
+                }, 0);
+
+                dialog.manual_off();
             });
         });
     });
