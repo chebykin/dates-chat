@@ -164,7 +164,42 @@ describe('Dialog', function () {
         });
 
         describe("while INITIALIZED state", function () {
-            it("should initialize dialog immediately after sending first message, when " +
+            describe("man's message", function () {
+               it("should keep 'initialized' state", function (done) {
+                   var dialog = this.dialog,
+                       deferred = Q.defer();
+
+                   dialog.state = 'initialized';
+                   redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+                   sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
+                   deferred.resolve(10);
+
+                   dialog.deliver(this.message_from_man)
+                       .then(function () {
+                           expect(dialog.state).to.equal('initialized');
+                           expect(dialog.tracker.state).to.equal('off');
+                       })
+                       .fail(bad_fail).then(done, done);
+               });
+            });
+
+            describe("woman's message", function () {
+                it("should start dialog", function (done) {
+                    var dialog = this.dialog;
+
+                    dialog.state = 'initialized';
+                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+
+                    dialog.deliver(this.message_from_woman)
+                        .then(function () {
+                            expect(dialog.state).to.equal('on');
+                            expect(dialog.tracker.state).to.equal('on');
+                        })
+                        .fail(bad_fail).then(done, done);
+                });
+            });
+
+            it.skip("should initialize dialog immediately after sending first message, when " +
                 "last one is from woman and is sent at last 30 minutes", function (done) {
                 var dialog = this.dialog,
                     deferred = Q.defer();
