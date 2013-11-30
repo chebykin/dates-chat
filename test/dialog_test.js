@@ -537,4 +537,22 @@ describe('Dialog', function () {
             }).fail(bad_fail).then(done, done);
         });
     });
+
+    describe('messages', function () {
+        it('should backed-up by redis', function (done) {
+            var dialog = this.dialog,
+                message = this.message_from_woman,
+                test = this;
+
+            message.text = 'hello';
+
+            dialog.deliver(this.message_from_woman)
+                .then(function () {
+                    redis.lrange(test.redis_key, -1, -1, function (err, obj) {
+                        if (err) done(err);
+                        expect(obj[0]).to.equal(JSON.stringify(message));
+                    });
+                }).fail(bad_fail).then(done, done);
+        });
+    });
 });
