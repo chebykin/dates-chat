@@ -62,5 +62,30 @@ describe('Tracker', function () {
 
             this.clock.tick(config.timeouts.inactive_timeout + 1000);
         });
+
+        it('should be able to remove tick interval', function () {
+            var spy = sinon.spy();
+
+            this.tracker.on('tick', spy);
+            this.tracker.start();
+            this.clock.tick(config.timeouts.charge_interval + 1000);
+            this.tracker.remove_tick();
+            this.clock.tick(config.timeouts.charge_interval * 2 + 1000);
+
+            spy.should.have.been.calledOnce;
+            expect(this.tracker.interval).to.equal(null);
+        });
+
+        it('should remove all timers and intervals on destruct method', function () {
+            var trackerMock = sinon.mock(this.tracker);
+
+            trackerMock.expects('remove_inactive_timeout').once();
+            trackerMock.expects('remove_manual_off_timeout').once();
+            trackerMock.expects('remove_tick').once();
+
+            this.tracker.destruct();
+
+            trackerMock.verify();
+        });
     });
 });
