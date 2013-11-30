@@ -5,9 +5,10 @@ var config = {
         websocket_port: 10013,
         redis_port: 6390,
         billing: {
-            hostname: 'http://dev.bestuabrides.com/chat_api',
+            hostname: 'http://dev.bestuabrides.com',
+            path: '/chat_api',
             port: 80,
-            timeout: 1000
+            timeout: 10000
         },
         timeouts: {
             manual_off_timeout: 1800000, // 30 minutes
