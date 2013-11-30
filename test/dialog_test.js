@@ -46,7 +46,7 @@ describe('Dialog', function () {
                 deferred = Q.defer();
 
             walletMock.expects('balance').once().returns(deferred.promise);
-            deferred.resolve(1);
+            deferred.resolve(100);
             
             this.dialog.initialize_man()
                 .then(function () {
@@ -79,7 +79,7 @@ describe('Dialog', function () {
                 beforeEach(function () {
                     var deferred = Q.defer();
                     sinon.stub(this.dialog.wallet, 'balance').returns(deferred.promise);
-                    deferred.resolve(10);
+                    deferred.resolve(100);
                 });
 
                 it("should switch state to 'initialized'", function (done) {
@@ -124,7 +124,6 @@ describe('Dialog', function () {
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
                             expect(dialog.state).to.equal('off');
-                            expect(dialog.tracker.state).to.equal('off');
                             startMock.verify();
                         })
                         .fail(bad_fail)
@@ -172,7 +171,7 @@ describe('Dialog', function () {
                    dialog.state = 'initialized';
                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
                    sinon.stub(dialog.wallet, 'balance').returns(deferred.promise);
-                   deferred.resolve(10);
+                   deferred.resolve(100);
 
                    dialog.deliver(this.message_from_man)
                        .then(function () {
@@ -193,7 +192,7 @@ describe('Dialog', function () {
                     dialog.state = 'initialized';
                     redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
                     sinon.stub(dialog.wallet, 'charge').returns(deferred.promise);
-                    deferred.resolve(10);
+                    deferred.resolve(100);
 
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
@@ -212,7 +211,7 @@ describe('Dialog', function () {
                 this.dialog.state = 'initialized';
                 redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
                 sinon.stub(this.dialog.wallet, 'charge').returns(this.deferred.promise);
-                this.deferred.resolve(10);
+                this.deferred.resolve(100);
             });
 
             describe("man's message", function () {
@@ -241,7 +240,7 @@ describe('Dialog', function () {
                         clock = sinon.useFakeTimers();
 
                     sinon.stub(dialog.wallet, 'charge').returns(deferred.promise);
-                    deferred.resolve(10);
+                    deferred.resolve(100);
                     dialog.last_message_role = 'woman';
                     dialog.start();
                     clock.tick(1);
@@ -391,6 +390,39 @@ describe('Dialog', function () {
 
                 dialog.manual_off();
             });
+
+            describe('while destroying dialog', function () {
+                beforeEach(function () {
+                    this.dialog.state = 'initialized';
+                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+                    sinon.stub(this.dialog.wallet, 'charge').returns(Q.resolve(100));
+                });
+
+                it('should call destruct on wallet', function (done) {
+                    var dialog = this.dialog,
+                        trackerMock = sinon.mock(dialog.tracker);
+
+                    trackerMock.expects('destruct').once();
+
+                    dialog.start().then(function () {
+                        dialog.tick_handler();
+                        dialog.close();
+                        trackerMock.verify();
+                    }).fail(bad_fail).then(done, done);
+                });
+
+                it('should dereference wallet', function (done) {
+                    var dialog = this.dialog;
+
+                    dialog.start().then(function () {
+                        dialog.tick_handler();
+                        dialog.close();
+                        expect(dialog.tracker).to.equal(null);
+                    }).fail(bad_fail).then(done, done);
+                });
+            });
+
+
         });
     });
 
@@ -467,7 +499,7 @@ describe('Dialog', function () {
             dialog.state = 'initialized';
             redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
             chargeMock.expects('charge').thrice().returns(deferred.promise);
-            deferred.resolve(10);
+            deferred.resolve(100);
 
             dialog.start()
                 .then(function () {
@@ -476,6 +508,33 @@ describe('Dialog', function () {
                     chargeMock.verify();
                 })
                 .fail(bad_fail).then(done, done);
+        });
+
+        it('should delete dialog from map if there is no enough money', function (done) {
+            var dialog = dialogs.between(this.first, this.second),
+                clock = sinon.useFakeTimers(),
+                balance = 45;
+
+            sinon.stub(dialog.wallet, 'charge', function () {
+                balance = balance - require('../billing').price_per_minute_for.chat;
+                if (balance > 0) {
+                    return Q.resolve(balance);
+                } else {
+                    return Q.reject(new Error('no money'));
+                }
+            });
+
+            dialog.state = 'initialized';
+            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
+
+            dialog.start().then(function () {
+                expect(dialogs.collection.size).to.equal(1);
+                clock.tick(180000);
+                // Don't now how (hope yet)
+                clock.tick(180001);
+                expect(dialogs.collection.size).to.equal(0);
+                clock.restore();
+            }).fail(bad_fail).then(done, done);
         });
     });
 });
