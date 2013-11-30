@@ -35,4 +35,11 @@ describe('Dialogs collection', function () {
         dialogs.del('137_103');
         expect(dialogs.collection.size).to.equal(0);
     });
+
+    it('should keep updated dialog in collection', function () {
+        var dialog = dialogs.between(137, 103);
+
+        dialog.state = 'updated';
+        expect(dialog.state).to.equal(dialogs.between(137, 103).state);
+    });
 });
