@@ -20,6 +20,5 @@ module.exports = function (ws, method, payload) {
             break;
         default:
             throw new PrivateError('messages action: ws is not WebSocket instance');
-            break;
     }
 };

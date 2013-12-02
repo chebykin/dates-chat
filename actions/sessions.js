@@ -4,14 +4,14 @@ var men = require('../lib/user').men,
     responder = require('../lib/responder'),
     PrivateError = require('../lib/errors').private,
     PublicError = require('../lib/errors').public,
-    config = config = require('../config')[process.env.NODE_ENV],
+    config = require('../config')[process.env.NODE_ENV],
     redis = require('redis').createClient(config.redis_port);
 
 module.exports = function (ws, method) {
     try {
         var key = utils.getCookie('_v_token_key', ws.upgradeReq.headers.cookie);
         if (method !== 'post') throw new PrivateError('Creating new session: unknown method.');
-        if (typeof key === 'undefined') throw new PrivateError('Creating new session: unknown cookie key.')
+        if (typeof key === 'undefined') throw new PrivateError('Creating new session: unknown cookie key.');
 
         redis.hget('chat:session:store', key, function (err, obj) {
             var user_id = utils.getProp(obj, 'user_id'),
