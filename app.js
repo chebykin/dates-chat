@@ -13,6 +13,7 @@ var config = require('./config')[process.env.NODE_ENV],
     app = chat(),
     messages_actions = require('./actions/messages'),
     sessions_actions = require('./actions/sessions'),
+    settings_actions = require('./actions/settings'),
     util = require('util'),
     men = require('./lib/user').men,
     women = require('./lib/user').women;
@@ -21,6 +22,7 @@ module.exports = app;
 
 app.use('messages', messages_actions);
 app.use('sessions', sessions_actions);
+app.use('settings', settings_actions);
 
 app.listen({port: config.websocket_port});
 
