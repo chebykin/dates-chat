@@ -13,7 +13,7 @@ module.exports = function (ws, method, payload) {
             currentCollection(ws).get_messages(ws.user_id);
             break;
         case 'post':
-            currentCollection(ws).deliver_message(payload, ws.user_id);
+            currentCollection(ws).deliver_message(payload, ws);
             break;
         case 'delete':
             currentCollection(ws).delete_messages(payload, ws.user_id);
