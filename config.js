@@ -21,7 +21,7 @@ var config = {
         websocket_port: 10013,
         redis_port: 6391,
         billing: {
-            hostname: '127.0.0.1',
+            hostname: 'http://127.0.0.1',
             path: '/fake_api',
             port: 12345,
             timeout: 1000

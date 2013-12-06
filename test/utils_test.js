@@ -40,10 +40,10 @@ describe('Utils', function () {
             utils.dialog_key(second, first).should.eql('137_103');
 
             (function () {utils.dialog_key(first, 123);})
-                .should.throw("Error while calculating dialog key: can't determine man key.");
+                .should.throw("Seems this user is offline.");
 
             (function () {utils.dialog_key(second, 123);})
-                .should.throw("Error while calculating dialog key: can't determine woman key.");
+                .should.throw("Seems this user is offline.");
 
             (function () {utils.dialog_key(second, undefined);})
                 .should.throw("Error while generating key for dialog.");

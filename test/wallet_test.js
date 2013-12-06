@@ -3,11 +3,11 @@ var nock = require('nock'),
 
 describe('Wallet', function () {
     beforeEach(function () {
-        this.wallet = new Wallet(137);
+        this.wallet = new Wallet(137, 103);
     });
 
     it('should query api for user balance', function (done) {
-        nock('http://' + config.billing.hostname + ':' + config.billing.port)
+        nock(config.billing.hostname + ':' + config.billing.port)
             .get(config.billing.path + '/wallets/137')
             .reply(200, {ok: true, balance: '43'});
 
@@ -19,8 +19,8 @@ describe('Wallet', function () {
     });
 
     it('should use successful callback if charging gone ok', function (done) {
-        nock('http://' + config.billing.hostname + ':' + config.billing.port)
-            .post(config.billing.path + '/transactions', {woman_id: 103, service: 'chat', amount: 0.16})
+        nock(config.billing.hostname + ':' + config.billing.port)
+            .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(200, {ok: true, new_balance: '43'});
 
         this.wallet.charge(0.16)
@@ -34,8 +34,8 @@ describe('Wallet', function () {
     });
 
     it('should use fail callback if user has no money', function (done) {
-        nock('http://' + config.billing.hostname + ':' + config.billing.port)
-            .post(config.billing.path + '/transactions', {woman_id: 103, service: 'chat', amount: 0.16})
+        nock(config.billing.hostname + ':' + config.billing.port)
+            .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(200, {ok: false, description: 'something failed'});
 
         this.wallet.charge(0.16)
@@ -50,8 +50,8 @@ describe('Wallet', function () {
     });
 
     it("should use fail callback if server doesn't response with success", function (done) {
-        nock('http://' + config.billing.hostname + ':' + config.billing.port)
-            .post(config.billing.path + '/transactions', {woman_id: 103, service: 'chat', amount: 0.16})
+        nock(config.billing.hostname + ':' + config.billing.port)
+            .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(500);
 
         this.wallet.charge(0.16)
@@ -59,7 +59,7 @@ describe('Wallet', function () {
                 throw new Error('Got success response when should not');
             })
             .fail(function (err) {
-                expect(err.message).to.equal("Billing server error");
+                expect(err.message).to.equal("Billing server error. Please, contact support.");
             })
             .then(done, done);
     });
