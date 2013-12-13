@@ -33,6 +33,16 @@ describe('Tracker', function () {
             spy.should.have.been.calledThrice;
         });
 
+        it('should emit destroy event when destruct method called', function () {
+            var spy = sinon.spy();
+
+            this.tracker.on('destroy', spy);
+            this.tracker.start();
+            this.tracker.destruct();
+
+            spy.should.have.been.called;
+        });
+
         it('should be able remove remove manual off callback', function () {
             var spy = sinon.spy();
 
