@@ -45,22 +45,42 @@ describe('Dialogs collection', function () {
         expect(dialog.state).to.equal(dialogs.between(137, 103).state);
     });
 
-    it('should be able to return all keys', function () {
-        var expexted_array = [[137, 103], [27, 103], [64, 103], [64, 553]];
-        men.all[27] = [{}, {}];
-        men.all[64] = [{}, {}];
-        women.all[553] = [{}, {}];
+    describe('acting with ids', function () {
+        beforeEach(function () {
+            dialogs.clear();
 
-        dialogs.between(103, 137);
-        dialogs.between(103, 27);
-        dialogs.between(103, 64);
-        dialogs.between(553, 64);
+            men.all[27] = [{}, {}];
+            men.all[64] = [{}, {}];
+            women.all[553] = [{}, {}];
 
-        console.log(dialogs.keys());
-        console.log(expexted_array);
-        expect(utils.equalToArray.call(dialogs.keys(), expexted_array)).to.ok;
+            dialogs.between(103, 137);
+            dialogs.between(103, 27);
+            dialogs.between(103, 64);
+            dialogs.between(553, 64);
+        });
 
-        delete men.all[27];
-        delete men.all[64];
+        afterEach(function () {
+            delete men.all[27];
+            delete men.all[64];
+        });
+
+        it('should be able to return all keys', function () {
+            var expected_keys = [[137, 103], [27, 103], [64, 103], [64, 553]];
+
+            expect(utils.equalToArray.call(dialogs.keys(), expected_keys)).to.be.ok;
+        });
+
+        it('should return man pairs', function () {
+            var expected_ids = [103, 553];
+
+            expect(utils.equalToArray.call(dialogs.pairs_of_man(64), expected_ids)).to.be.ok;
+        });
+
+        it('should return woman pairs', function () {
+            var expected_ids = [137, 27, 64];
+
+            expect(utils.equalToArray.call(dialogs.pairs_of_woman(103), expected_ids)).to.be.ok;
+        });
     });
+
 });
