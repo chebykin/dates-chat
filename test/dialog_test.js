@@ -246,9 +246,9 @@ describe('Dialog', function () {
                     clock.tick(1);
                     dialog.deliver(this.message_from_woman)
                         .then(function () {
-                            expect(dialogs.collection.size).to.equal(1);
+                            expect(dialogs.size()).to.equal(1);
                             clock.tick(300010);
-                            expect(dialogs.collection.size).to.equal(0);
+                            expect(dialogs.size()).to.equal(0);
                             clock.restore();
                             dialogs.clear();
                         })
@@ -360,14 +360,14 @@ describe('Dialog', function () {
                 var dialog = dialogs.between(137, 103),
                     clock = sinon.useFakeTimers();
 
-                expect(dialogs.collection.size).to.equal(1);
+                expect(dialogs.size()).to.equal(1);
                 dialog.last_message_role = 'woman';
                 dialog.state = 'on';
                 clock.tick(1799999);
-                expect(dialogs.collection.size).to.equal(1);
+                expect(dialogs.size()).to.equal(1);
                 dialog.manual_off();
                 clock.tick(1800010);
-                expect(dialogs.collection.size).to.equal(0);
+                expect(dialogs.size()).to.equal(0);
                 clock.restore();
                 dialogs.clear();
             });
@@ -528,11 +528,11 @@ describe('Dialog', function () {
             redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
 
             dialog.start().then(function () {
-                expect(dialogs.collection.size).to.equal(1);
+                expect(dialogs.size()).to.equal(1);
                 clock.tick(180000);
                 // Don't now how (hope yet)
                 clock.tick(180001);
-                expect(dialogs.collection.size).to.equal(0);
+                expect(dialogs.size()).to.equal(0);
                 clock.restore();
             }).fail(bad_fail).then(done, done);
         });

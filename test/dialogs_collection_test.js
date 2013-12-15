@@ -2,7 +2,8 @@
 
 var dialogs = require('../lib/dialogs_collection'),
     Dialog = require('../lib/dialog'),
-    men = require('../lib/user').men;
+    men = require('../lib/user').men,
+    women = require('../lib/user').women;
 
 describe('Dialogs collection', function () {
     beforeEach(function () {
@@ -21,9 +22,9 @@ describe('Dialogs collection', function () {
         dialogs.between(103, 27);
         dialogs.between(103, 64);
 
-        expect(dialogs.collection.size).to.equal(3);
+        expect(dialogs.size()).to.equal(3);
         dialogs.clear();
-        expect(dialogs.collection.size).to.equal(0);
+        expect(dialogs.size()).to.equal(0);
 
         delete men.all[27];
         delete men.all[64];
@@ -31,9 +32,9 @@ describe('Dialogs collection', function () {
 
     it('should delete object from collection', function () {
         dialogs.between(137, 103);
-        expect(dialogs.collection.size).to.equal(1);
+        expect(dialogs.size()).to.equal(1);
         dialogs.del('137_103');
-        expect(dialogs.collection.size).to.equal(0);
+        expect(dialogs.size()).to.equal(0);
     });
 
     it('should keep updated dialog in collection', function () {
