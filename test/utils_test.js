@@ -49,4 +49,13 @@ describe('Utils', function () {
                 .should.throw("Error while generating key for dialog.");
         });
     });
+
+    describe('equalToArray', function () {
+        it('should act correct on plain arrays', function () {
+            var firstArray = [1,6,3,5],
+                secondArray = [1,6,3,5];
+
+            expect(utils.equalToArray.call(firstArray, secondArray)).to.be.ok;
+        });
+    });
 });
