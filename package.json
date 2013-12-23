@@ -22,5 +22,7 @@
         "q": "*",
         "underscore": "*"
     },
-    "engine": "node >= 0.10.24"
+    "engine": {
+        "node": "0.10.x"
+    }
 }
