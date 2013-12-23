@@ -4,8 +4,7 @@ var men = require('../lib/user').men,
     responder = require('../lib/responder'),
     PrivateError = require('../lib/errors').private,
     PublicError = require('../lib/errors').public,
-    config = require('../config')[process.env.NODE_ENV],
-    redis = require('redis').createClient(config.redis_port);
+    redis = require('../lib/redis').create();
 
 module.exports = function (ws, method, payload) {
     if (method === 'post') {

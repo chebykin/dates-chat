@@ -8,7 +8,7 @@
  * second there can be a lot login/logout events. We are not so paranoiac of precision of events. 2-3 seconds is enough.
  */
 
-var config = require('./config')[process.env.NODE_ENV],
+var config = require('./config'),
     chat = require('./lib/chat'),
     app = chat(),
     messages_actions = require('./actions/messages'),

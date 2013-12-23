@@ -2,7 +2,7 @@
 
 var men = require('../lib/user').men,
     women = require('../lib/user').women,
-    redis = require('redis').createClient(config.redis_port),
+    redis = require('../lib/redis').create(),
     Dialog = require('../lib/dialog'),
     dialogs = require('../lib/dialogs_collection');
 

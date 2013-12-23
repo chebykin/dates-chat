@@ -28,7 +28,7 @@ describe('Tracker', function () {
 
             this.tracker.on('tick', spy);
             this.tracker.start();
-            this.clock.tick(config.timeouts.charge_interval * 3 + 100);
+            this.clock.tick(config.intervals.charge_interval * 3 + 100);
 
             spy.should.have.been.calledThrice;
         });
@@ -78,9 +78,9 @@ describe('Tracker', function () {
 
             this.tracker.on('tick', spy);
             this.tracker.start();
-            this.clock.tick(config.timeouts.charge_interval + 1000);
+            this.clock.tick(config.intervals.charge_interval + 1000);
             this.tracker.remove_tick();
-            this.clock.tick(config.timeouts.charge_interval * 2 + 1000);
+            this.clock.tick(config.intervals.charge_interval * 2 + 1000);
 
             spy.should.have.been.calledOnce;
             expect(this.tracker.interval).to.equal(null);

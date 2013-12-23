@@ -1,6 +1,6 @@
 "use strict";
 
-global.config = require('../config')[process.env.NODE_ENV];
+global.config = require('../config');
 global.Q = require('q');
 global.sinon = require('sinon');
 global.chai = require('chai');

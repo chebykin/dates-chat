@@ -1,7 +1,6 @@
 var messages = require('../actions/messages'),
     WebSocket = require('ws'),
-    Redis = require('redis'),
-    redis = Redis.createClient(config.redis_port),
+    redis = require('../lib/redis').create(),
     women = require('../lib/user').women,
     men = require('../lib/user').men,
     user = require('../lib/user');

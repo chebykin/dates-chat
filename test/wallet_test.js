@@ -7,7 +7,7 @@ describe('Wallet', function () {
     });
 
     it('should query api for user balance', function (done) {
-        nock(config.billing.hostname + ':' + config.billing.port)
+        nock(config.billing.hostname + ':' + config.ports.billing)
             .get(config.billing.path + '/wallets/137')
             .reply(200, {ok: true, balance: '43'});
 
@@ -19,7 +19,7 @@ describe('Wallet', function () {
     });
 
     it('should use successful callback if charging gone ok', function (done) {
-        nock(config.billing.hostname + ':' + config.billing.port)
+        nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(200, {ok: true, new_balance: '43'});
 
@@ -34,7 +34,7 @@ describe('Wallet', function () {
     });
 
     it('should use fail callback if user has no money', function (done) {
-        nock(config.billing.hostname + ':' + config.billing.port)
+        nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(200, {ok: false, description: 'something failed'});
 
@@ -50,7 +50,7 @@ describe('Wallet', function () {
     });
 
     it("should use fail callback if server doesn't response with success", function (done) {
-        nock(config.billing.hostname + ':' + config.billing.port)
+        nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
             .reply(500);
 

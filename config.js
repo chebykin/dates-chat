@@ -1,42 +1,34 @@
-
 var config = {
-    development: {
-        online_check_interval: 1500,
-        websocket_port: 10013,
-        redis_port: 6390,
-        billing: {
-            hostname: 'http://dev.bestuabrides.com',
-            path: '/chat_api',
-            port: 80,
-            timeout: 10000
-        },
-        timeouts: {
-            manual_off_timeout: 1800000, // 30 minutes
-            inactive_timeout: 300000, // 5 minutes
-            charge_interval: 60000 // 1 minute
-        }
+    billing: {
+        hostname: process.env.UB_BILLING_HOSTNAME,
+        path: process.env.UB_BILLING_PATH
     },
-    test: {
-        online_check_interval: 1500,
-        websocket_port: 10013,
-        redis_port: 6391,
-        billing: {
-            hostname: 'http://127.0.0.1',
-            path: '/fake_api',
-            port: 12345,
-            timeout: 1000
-        },
-        timeouts: {
-            manual_off_timeout: 1800000,
-            inactive_timeout: 300000,
-            charge_interval: 60000
-        }
+    ports: {
+        billing: process.env.UB_BILLING_PORT,
+        websocket: process.env.PORT
     },
-    production: {
-        online_check_interval: 3500,
-        websocket_port: 10013,
-        redis_port: 6390
-    }
+    timeouts: {
+        billing_server_response_timeout: process.env.UB_BILLING_TIMEOUT,
+        manual_off_timeout: process.env.UB_TIMEOUTS_MANUAL_OFF_TIMEOUT,
+        inactive_timeout: process.env.UB_TIMEOUTS_INACTIVE_TIMEOUT
+    },
+    intervals: {
+        charge_interval: process.env.UB_TIMEOUTS_CHARGE_INTERVAL,
+        online_check_interval: process.env.ONLINE_CHECK_INTERVAL
+    },
+    redis_url: process.env.REDISTOGO_URL
 };
+
+var integerGroups = ['ports', 'timeouts', 'intervals'];
+
+for (var group in config) {
+    if (config.hasOwnProperty(group) && integerGroups.indexOf(group) >= 0) {
+        for (var field in config[group]) {
+            if (config[group].hasOwnProperty(field)) {
+                config[group][field] = parseInt(config[group][field], 10);
+            }
+        }
+    }
+}
 
 module.exports = config;
