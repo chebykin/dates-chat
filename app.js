@@ -26,7 +26,7 @@ app.use('sessions', sessions_actions);
 app.use('settings', settings_actions);
 app.use('dialogs', dialogs_actions);
 
-app.listen({port: config.websocket_port});
+app.listen({port: config.ports.websocket});
 
 setInterval(function () {
     men.tick_update_online_users();
