@@ -44,6 +44,8 @@ module.exports = function (ws, method, payload) {
                 women.set_mode(ws, payload.value);
             }
         }
+    } else if (method === 'ping') {
+
     } else {
         throw new PrivateError('Creating new session: unknown method.');
     }
