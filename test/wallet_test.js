@@ -36,7 +36,7 @@ describe('Wallet', function () {
     it('should use fail callback if user has no money', function (done) {
         nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 0.16})
-            .reply(200, {ok: false, description: 'something failed'});
+            .reply(200, {ok: false, message: 'something failed'});
 
         this.wallet.charge(0.16)
             .then(function (new_balance) {
