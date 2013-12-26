@@ -237,22 +237,25 @@ describe('Dialog', function () {
                     dialogs.clear();
                     var dialog = dialogs.between(137, 103),
                         deferred = Q.defer(),
-                        clock = sinon.useFakeTimers();
+                        clock = sinon.useFakeTimers(),
+                        _dialog = this;
 
                     sinon.stub(dialog.wallet, 'charge').returns(deferred.promise);
                     deferred.resolve(100);
                     dialog.last_message_role = 'woman';
-                    dialog.start();
-                    clock.tick(1);
-                    dialog.deliver(this.message_from_woman)
+                    dialog.start()
                         .then(function () {
-                            expect(dialogs.size()).to.equal(1);
-                            clock.tick(300010);
-                            expect(dialogs.size()).to.equal(0);
-                            clock.restore();
-                            dialogs.clear();
+                            dialog.deliver(_dialog.message_from_woman)
+                                .then(function () {
+                                    expect(dialogs.size()).to.equal(1);
+                                    clock.tick(300010);
+                                    expect(dialogs.size()).to.equal(0);
+                                    clock.restore();
+                                    dialogs.clear();
+                                });
                         })
                         .fail(bad_fail).then(done, done);
+                    clock.tick(1);
                 });
             });
 
@@ -279,6 +282,7 @@ describe('Dialog', function () {
 
         describe("while MANUAL OFF state", function () {
             beforeEach(function () {
+                dialogs.clear();
                 this.deferred = Q.defer();
                 this.dialog.state = 'initialized';
 
@@ -286,57 +290,74 @@ describe('Dialog', function () {
                 redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
                 sinon.stub(this.dialog.wallet, 'charge').returns(this.deferred.promise);
                 this.deferred.resolve(10);
-
-                this.dialog.start();
-                this.dialog.manual_off();
             });
 
             it("man's message should immediately start dialog", function (done) {
-                var dialog = this.dialog;
+                var dialog = this.dialog,
+                    _test = this;
 
-                expect(dialog.state).to.equal('manual off');
-
-                dialog.deliver(this.message_from_man)
+                dialog.start()
                     .then(function () {
-                        expect(dialog.state).to.equal('on');
+                        dialog.manual_off();
+                        expect(dialog.state).to.equal('manual off');
+
+                        dialog.deliver(_test.message_from_man)
+                            .then(function () {
+                                expect(dialog.state).to.equal('on');
+                            });
                     })
                     .fail(bad_fail).then(done, done);
             });
 
             it("man's message should remove manual off timeout", function (done) {
                 var dialog = this.dialog,
-                    trackerMock = sinon.mock(dialog.tracker);
+                    trackerMock = sinon.mock(dialog.tracker),
+                    _test = this;
 
                 trackerMock.expects('remove_manual_off_timeout').once();
 
-                dialog.deliver(this.message_from_man)
+                dialog.start()
                     .then(function () {
-                        trackerMock.verify();
+                        dialog.manual_off();
+                        dialog.deliver(_test.message_from_man)
+                            .then(function () {
+                                trackerMock.verify();
+                            });
                     })
                     .fail(bad_fail).then(done, done);
             });
 
-            it("woman's message should immediately start dialog", function (done) {
-                var dialog = this.dialog;
+            it("woman's message should not start dialog", function (done) {
+                var dialog = this.dialog,
+                    _test = this;
 
-                expect(dialog.state).to.equal('manual off');
-
-                dialog.deliver(this.message_from_woman)
+                dialog.start()
                     .then(function () {
+                        dialog.manual_off();
                         expect(dialog.state).to.equal('manual off');
-                    })
-                    .fail(bad_fail).then(done, done);
+
+                        dialog.deliver(_test.message_from_woman)
+                            .then(function () {
+                                expect(dialog.state).to.equal('manual off');
+                            })
+                            .fail(bad_fail).then(done, done);
+                    });
             });
 
             it("woman's message should not remove manual off timeout", function (done) {
                 var dialog = this.dialog,
-                    trackerMock = sinon.mock(dialog.tracker);
+                    trackerMock = sinon.mock(dialog.tracker),
+                    _test = this;
 
                 trackerMock.expects('remove_manual_off_timeout').never();
 
-                dialog.deliver(this.message_from_woman)
+                dialog.start()
                     .then(function () {
-                        trackerMock.verify();
+                        dialog.manual_off();
+                        dialog.deliver(_test.message_from_woman)
+                            .then(function () {
+                                trackerMock.verify();
+                            });
                     })
                     .fail(bad_fail).then(done, done);
             });
