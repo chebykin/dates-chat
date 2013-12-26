@@ -16,7 +16,10 @@ module.exports = function (ws, method, payload) {
         dialog = dialogs.between(ws.user_id, payload.contact_id);
 
         if(ws.user_id === dialog.man_id) {
-            dialog.manual_on();
+            dialog.manual_on()
+                .fail(function (err) {
+                    throw new PublicError(err);
+                });
         } else {
             throw new Error('Dialogs Action: Only man can toggle dialogs');
         }
