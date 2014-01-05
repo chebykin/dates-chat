@@ -458,59 +458,6 @@ describe('Dialog', function () {
         });
     });
 
-    describe('after check for last message', function () {
-        it('should woman callback if last message from woman', function (done) {
-            redis.rpush(this.redis_key, JSON.stringify(this.message_from_woman));
-
-            this.dialog.last_message_is_from(function () {
-                throw new Error('Man callback was called when should not');
-            }, function () {
-                done();
-            });
-        });
-
-        it('should use man callback if last message from man', function (done) {
-            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
-
-            this.dialog.last_message_is_from(function () {
-                done();
-            }, function () {
-                throw new Error('Woman callback was called when should not');
-            });
-        });
-
-        it('should use man callback if there is no any messages before', function (done) {
-            redis.del(this.redis_key);
-
-            this.dialog.last_message_is_from(function () {
-                done();
-            }, function () {
-                throw new Error('Woman callback was called when should not');
-            });
-        });
-
-        it('should set last_message_role property of instance', function (done) {
-            var dialog = this.dialog,
-                _test = this;
-
-            redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));
-
-            dialog.last_message_is_from(function () {
-                expect(dialog.last_message_role).to.equal('man');
-                redis.rpush(_test.redis_key, JSON.stringify(_test.message_from_woman));
-
-                dialog.last_message_is_from(function () {
-                    throw new Error('Man callback was called when should not');
-                }, function () {
-                    expect(dialog.last_message_role).to.equal('woman');
-                    done();
-                });
-            }, function () {
-                throw new Error('Woman callback was called when should not');
-            });
-        });
-    });
-
     describe('charges', function () {
         it('should be happened every tick', function (done) {
             var dialog = this.dialog,
