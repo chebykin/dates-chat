@@ -8,8 +8,6 @@
  * second there can be a lot login/logout events. We are not so paranoiac of precision of events. 2-3 seconds is enough.
  */
 
-require('newrelic');
-
 var config = require('./config'),
     chat = require('./lib/chat'),
     app = chat(),
