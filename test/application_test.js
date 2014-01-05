@@ -1,5 +1,9 @@
+"use strict";
+
 var WebSocket = require('ws'),
     PublicError = require('../lib/errors').public,
+    PrivateError = require('../lib/errors').private,
+    chat = require('../lib/chat'),
     port = 20300;
 
 describe('Application', function () {
@@ -65,6 +69,20 @@ describe('Application', function () {
             JSON.parse(data).should.be.eql({reason: 'error', description: error_text});
             done();
         });
+
+    });
+
+    it.skip('should not throw errors in production environment', function () {
+        var ws = new WebSocket('ws://localhost:' + port),
+            request = {resource: 'thrower', method: 'get'},
+            application = chat();
+
+        function thrower () {
+            throw new PrivateError('on now, shit happened');
+        }
+
+        application.use('error', thrower);
+
 
     });
 });
