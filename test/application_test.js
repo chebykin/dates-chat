@@ -2,6 +2,7 @@
 
 var WebSocket = require('ws'),
     PublicError = require('../lib/errors').public,
+    AuthorizationError = require('../lib/errors').auth,
     chat = require('../lib/chat'),
     port = 20300;
 
@@ -49,31 +50,57 @@ describe('Application', function () {
         online_users_handler.should.not.have.been.calledOnce;
     });
 
-    it("should notify about PublicError via websocket", function (done) {
-        var ws = new WebSocket('ws://localhost:' + port),
-            request = {resource: 'thrower', method: 'get'},
-            application = this.application,
-            error_text = "TEST ERROR: should notify about PublicError via websocket\n";
-
-        function sessions () {
-            return Q.resolve(5);
-        }
-
-        function thrower () {
-            var e = new PublicError(error_text);
-            return Q.reject(e);
-        }
-
-        application.use('sessions', sessions);
-        application.use('thrower', thrower);
-
-        ws.on('open', function () {
-            ws.send(JSON.stringify(request));
+    describe('error handler', function () {
+        beforeEach(function () {
+            this.ws = new WebSocket('ws://localhost:' + port);
+            this.request = {resource: 'thrower', method: 'get'};
+            this.error_text = "TEST ERROR: should notify about PublicError via websocket\n";
+            this.sessions = function () {
+                return Q.resolve(5);
+            };
         });
 
-        ws.on('message', function (data) {
-            JSON.parse(data).should.be.eql({reason: 'error', description: error_text});
-            done();
+        it("should notify about PublicError via websocket", function (done) {
+            var _test = this;
+
+            function thrower () {
+                return Q.reject(new PublicError(_test.error_text));
+            }
+
+            this.application.use('sessions', this.sessions);
+            this.application.use('thrower', thrower);
+
+            this.ws.on('open', function () {
+                _test.ws.send(JSON.stringify(_test.request));
+            });
+
+            this.ws.on('message', function (data) {
+                JSON.parse(data).should.be.eql({reason: 'error', description: _test.error_text});
+                done();
+            });
+        });
+
+        it("should close connection for unauthorized user", function (done) {
+            var _test = this;
+
+            function thrower () {
+                return Q.reject(new AuthorizationError(_test.error_text));
+            }
+
+            this.application.use('sessions', this.sessions);
+            this.application.use('thrower', thrower);
+
+            this.ws.on('open', function () {
+                _test.ws.send(JSON.stringify(_test.request));
+            });
+
+            this.ws.on('message', function (data) {
+                JSON.parse(data).should.be.eql({reason: 'error', description: 'Authorization error.'});
+                setTimeout(function () {
+                    expect(_test.ws.readyState).to.be.within(2, 3);
+                    done();
+                }, 0);
+            });
         });
     });
 });
