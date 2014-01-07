@@ -2,7 +2,6 @@
 
 var WebSocket = require('ws'),
     PublicError = require('../lib/errors').public,
-    PrivateError = require('../lib/errors').private,
     chat = require('../lib/chat'),
     port = 20300;
 
@@ -15,16 +14,20 @@ describe('Application', function () {
 
     it("should call on method with right values", function (done) {
         var ws = new WebSocket('ws://localhost:' + port),
-            request = {resource: 'message', method: 'get'},
-            application = this.application;
+            request = {resource: 'sessions', method: 'post'},
+            application = this.application,
+            appMock = sinon.mock(application);
 
-        var stub = sinon.stub(application, 'handle');
+        appMock
+            .expects('handle')
+            .withArgs(sinon.match.instanceOf(WebSocket), request.resource, request.method)
+            .atLeast(1)
+            .returns(Q.resolve(5));
 
         ws.on('open', function () {
             ws.send(JSON.stringify(request));
             setTimeout(function () {
-                stub.calledWithExactly(application.handle, sinon.match.any, request.resource, request.method);
-                stub.restore();
+                appMock.verify();
                 done();
                 // websocket timeout
             }, 100);
@@ -34,8 +37,8 @@ describe('Application', function () {
 
     it("should apply all callbacks for resource", function () {
         var application = this.application,
-            messages_handler = sinon.spy(),
-            online_users_handler = sinon.spy();
+            messages_handler = sinon.stub().returns(Q.resolve(5)),
+            online_users_handler = sinon.stub().returns(Q.resolve(5));
 
         application.use('messages', messages_handler);
         application.use('online_users', online_users_handler);
@@ -52,10 +55,13 @@ describe('Application', function () {
             application = this.application,
             error_text = "TEST ERROR: should notify about PublicError via websocket\n";
 
-        function sessions () {}
+        function sessions () {
+            return Q.resolve(5);
+        }
 
         function thrower () {
-            throw new PublicError(error_text);
+            var e = new PublicError(error_text);
+            return Q.reject(e);
         }
 
         application.use('sessions', sessions);
@@ -69,20 +75,5 @@ describe('Application', function () {
             JSON.parse(data).should.be.eql({reason: 'error', description: error_text});
             done();
         });
-
-    });
-
-    it.skip('should not throw errors in production environment', function () {
-        var ws = new WebSocket('ws://localhost:' + port),
-            request = {resource: 'thrower', method: 'get'},
-            application = chat();
-
-        function thrower () {
-            throw new PrivateError('on now, shit happened');
-        }
-
-        application.use('error', thrower);
-
-
     });
 });

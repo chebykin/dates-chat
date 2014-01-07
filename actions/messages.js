@@ -1,24 +1,20 @@
-var WebSocket = require('ws'),
-    PrivateError = require('../lib/errors').private,
+"use strict";
+
+var Q = require('q'),
+    WebSocket = require('ws'),
     oppositeCollection = require('../lib/user').oppositeCollection,
     currentCollection = require('../lib/user').currentCollection;
 
 module.exports = function (ws, method, payload) {
-    if (!(ws instanceof WebSocket)) {
-        throw new PrivateError('messages action: ws is not WebSocket instance');
-    }
 
     switch (method) {
         case 'get':
-            currentCollection(ws).get_messages(ws.user_id);
-            break;
+            return currentCollection(ws).get_messages(ws.user_id);
         case 'post':
-            currentCollection(ws).deliver_message(payload, ws);
-            break;
+            return currentCollection(ws).deliver_message(payload, ws);
         case 'delete':
-            currentCollection(ws).delete_messages(payload, ws.user_id);
-            break;
+            return currentCollection(ws).delete_messages(payload, ws.user_id);
         default:
-            throw new PrivateError('messages action: ws is not WebSocket instance');
+            return Q.reject(new Error('messages action: ws is not WebSocket instance'));
     }
 };
