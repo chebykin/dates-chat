@@ -5,7 +5,7 @@ var messages = require('../actions/messages'),
     men = require('../lib/user').men,
     user = require('../lib/user');
 
-describe('Messages', function () {
+describe.skip('Messages', function () {
     // TODO: add check for redis persistence
     it.skip('should deliver message to recipient_id', function () {
         var manWS = new WebSocket('http://localhost'),

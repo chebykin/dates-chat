@@ -4,20 +4,24 @@ var WebSocket = require('ws'),
     PublicError = require('../lib/errors').public,
     AuthorizationError = require('../lib/errors').auth,
     chat = require('../lib/chat'),
-    port = 20300;
+    port = process.env.PORT,
+    sandbox;
 
 describe('Application', function () {
     beforeEach(function () {
-        this.application = require('../lib/application');
-        this.application.init({});
-        this.application.listen(++port);
+        this.application = require('../app');
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function () {
+        sandbox.restore();
     });
 
     it("should call on method with right values", function (done) {
         var ws = new WebSocket('ws://localhost:' + port),
             request = {resource: 'sessions', method: 'post'},
             application = this.application,
-            appMock = sinon.mock(application);
+            appMock = sandbox.mock(application);
 
         appMock
             .expects('handle')
@@ -38,22 +42,21 @@ describe('Application', function () {
 
     it("should apply all callbacks for resource", function () {
         var application = this.application,
-            messages_handler = sinon.stub().returns(Q.resolve(5)),
-            online_users_handler = sinon.stub().returns(Q.resolve(5));
+            stackMock = sinon.mock(application.stack);
 
-        application.use('messages', messages_handler);
-        application.use('online_users', online_users_handler);
+        stackMock.expects('messages').once();
+        stackMock.expects('sessions').once();
 
         application.handle({}, 'messages', 'get', 'payload payload');
+        application.handle({}, 'sessions', 'post', 'payload payload');
 
-        messages_handler.should.have.been.calledOnce;
-        online_users_handler.should.not.have.been.calledOnce;
+        stackMock.verify();
     });
 
     describe('error handler', function () {
         beforeEach(function () {
             this.ws = new WebSocket('ws://localhost:' + port);
-            this.request = {resource: 'thrower', method: 'get'};
+            this.request = {resource: 'messages', method: 'get'};
             this.error_text = "TEST ERROR: should notify about PublicError via websocket\n";
             this.sessions = function () {
                 return Q.resolve(5);
@@ -63,12 +66,8 @@ describe('Application', function () {
         it("should notify about PublicError via websocket", function (done) {
             var _test = this;
 
-            function thrower () {
-                return Q.reject(new PublicError(_test.error_text));
-            }
-
-            this.application.use('sessions', this.sessions);
-            this.application.use('thrower', thrower);
+            sandbox.stub(this.application.stack, 'sessions').returns(Q.reject(new PublicError(_test.error_text)));
+            sandbox.spy(this.application.stack, 'messages');
 
             this.ws.on('open', function () {
                 _test.ws.send(JSON.stringify(_test.request));
@@ -83,12 +82,8 @@ describe('Application', function () {
         it("should close connection for unauthorized user", function (done) {
             var _test = this;
 
-            function thrower () {
-                return Q.reject(new AuthorizationError(_test.error_text));
-            }
-
-            this.application.use('sessions', this.sessions);
-            this.application.use('thrower', thrower);
+            sandbox.stub(this.application.stack, 'sessions').returns(Q.reject(new AuthorizationError(_test.error_text)));
+            sandbox.spy(this.application.stack, 'messages');
 
             this.ws.on('open', function () {
                 _test.ws.send(JSON.stringify(_test.request));

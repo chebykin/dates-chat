@@ -21,16 +21,13 @@ module.exports = function (ws, method, payload) {
                 mode = 'chat';
 
             if (obj === null) {
-                deferred.reject(new Error('Session action: null object returned from redis.'));
+                deferred.reject(new AuthorizationError('Session action: null object returned from redis.'));
             } else if (role === 'man') {
-                men.add(user_id, ws, mode);
+                deferred.resolve(men.add(user_id, ws, mode));
             } else if (role === 'woman') {
-                women.add(user_id, ws, mode);
+                deferred.resolve(women.add(user_id, ws, mode));
             }
         });
-
-        deferred.reject(new AuthorizationError());
-
     } else if (method === 'patch') {
         if (payload.field === 'mode') {
             if (ws.role === 'man') {

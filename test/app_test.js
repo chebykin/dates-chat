@@ -14,12 +14,16 @@ describe('Chat app', function () {
     });
 
     it('should listen on localhost:process.env.PORT', function (done) {
-        var hanleStub = sinon.stub(app, 'handle').returns(true);
-        var ws = new WebSocket('ws://localhost:' + port);
+        var sandbox = sinon.sandbox.create(),
+            ws = new WebSocket('ws://localhost:' + port);
+
+        sandbox.stub(app, 'handle').returns(Q.resolve({}));
+        sandbox.stub(app.stack, 'sessions').returns(Q.resolve({}));
+
         ws.on('open', function () {
             expect(ws.readyState).to.equal(WebSocket.OPEN);
             ws.close();
-            hanleStub.restore();
+            sandbox.restore();
             done();
         });
     });
