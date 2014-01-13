@@ -6,7 +6,7 @@ var men = require('../lib/user').men,
     Q = require('q'),
     dialogs = require('../lib/dialogs_collection'),
     PublicError = require('../lib/errors').public,
-    redis = require('../lib/redis').create();
+    redis = require('../lib/redis').current();
 
 module.exports = function (ws, method, payload) {
     var dialog,

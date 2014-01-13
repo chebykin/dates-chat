@@ -2,7 +2,7 @@ var men = require('../lib/user').men,
     women = require('../lib/user').women,
     utils = require('../lib/utils'),
     AuthorizationError = require('../lib/errors').auth,
-    redis = require('../lib/redis').create(),
+    redis = require('../lib/redis').current(),
     Q = require('q');
 
 module.exports = function (ws, method, payload) {
