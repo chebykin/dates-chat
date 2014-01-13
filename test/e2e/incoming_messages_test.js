@@ -22,6 +22,7 @@ describe('Notifications', function () {
 
     after(function () {
         sandbox.restore();
+        app.wss.close();
     });
 
     describe('about dialog closing', function () {
@@ -30,8 +31,6 @@ describe('Notifications', function () {
                 cookieStub = sandbox.stub(utils, 'getCookie').returns('uglyValueMan'),
                 _test = this,
                 woman;
-
-            this.timeout(2000);
 
             redis.hset('chat:session:store', 'uglyValueMan', JSON.stringify({user_id: this.second, role: 'man'}));
             redis.hset('chat:session:store', 'uglyValueWoman', JSON.stringify({user_id: this.first, role: 'woman'}));
