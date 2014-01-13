@@ -53,15 +53,16 @@ describe('Dialogs collection', function () {
             men.all[64] = [{}, {}];
             women.all[553] = [{}, {}];
 
-            dialogs.between(103, 137);
-            dialogs.between(103, 27);
-            dialogs.between(103, 64);
-            dialogs.between(553, 64);
+            dialogs.between(103, 137)._state = 'INITIALIZED';
+            dialogs.between(103, 27)._state = 'ON';
+            dialogs.between(103, 64)._state = "MANUAL_OFF";
+            dialogs.between(553, 64)._state = 'ON';
         });
 
         afterEach(function () {
             delete men.all[27];
             delete men.all[64];
+            dialogs.collection = {};
         });
 
         it('should be able to return all keys', function () {
@@ -70,17 +71,22 @@ describe('Dialogs collection', function () {
             expect(utils.equalToArray.call(dialogs.keys(), expected_keys)).to.be.ok;
         });
 
-        it('should return man pairs', function () {
-            var expected_ids = [103, 553];
+        it('should be able to return only active dialogs keys', function () {
+            var expected_keys = [[27, 103], [64, 553]];
+
+            expect(utils.equalToArray.call(dialogs.active_keys(), expected_keys)).to.be.ok;
+        });
+
+        it('should return active man pairs', function () {
+            var expected_ids = [553];
 
             expect(utils.equalToArray.call(dialogs.pairs_of_man(64), expected_ids)).to.be.ok;
         });
 
-        it('should return woman pairs', function () {
-            var expected_ids = [137, 27, 64];
+        it('should return active woman pairs', function () {
+            var expected_ids = [27];
 
             expect(utils.equalToArray.call(dialogs.pairs_of_woman(103), expected_ids)).to.be.ok;
         });
     });
-
 });
