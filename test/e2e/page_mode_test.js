@@ -70,7 +70,7 @@ describe('Page mode', function () {
                         }}));
                     } else if (reason === 'settings' && method === 'replace') {
                         expect(payload.play_sound).to.be.true;
-                        expect(payload.notifications).to.equal('custom');
+                        expect(payload.notifications).to.equal('js');
                         done();
                     }
                 });
