@@ -16,10 +16,13 @@ var config = {
         charge_interval: process.env.UB_TIMEOUTS_CHARGE_INTERVAL,
         online_check_interval: process.env.ONLINE_CHECK_INTERVAL
     },
+    expirations: {
+        dialog: process.env.UB_EXPIRATIONS_DIALOG_EXPIRE
+    },
     redis_url: process.env.REDISTOGO_URL
 };
 
-var integerGroups = ['ports', 'timeouts', 'intervals'];
+var integerGroups = ['ports', 'timeouts', 'intervals', 'expirations'];
 
 for (var group in config) {
     if (config.hasOwnProperty(group) && integerGroups.indexOf(group) >= 0) {
