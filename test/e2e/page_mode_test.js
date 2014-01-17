@@ -24,8 +24,7 @@ describe('Page mode', function () {
     beforeEach(function (done) {
         sandbox = sinon.sandbox.create();
 
-        var cookieStub = sandbox.stub(utils, 'getCookie').returns('uglyValueMan'),
-            _test = this;
+        var _test = this;
 
         this.first = 103;
         this.second = 137;
@@ -33,58 +32,17 @@ describe('Page mode', function () {
         this.message_from_man = {sender_id: this.second, recipient_id: this.first, text: 'Hello from me;)'};
         this.dialog_key = 'dialogs:' + this.second + '_' + this.first;
 
-        this.man = new WebSocket('ws://localhost:' + port);
-        this.woman = undefined;
+        redis.flushall();
 
-        this.man_profile = {n: 'Vasya', mp: 'uglyManAvatar', a: 16};
-        this.woman_profile = {n: 'Olga', mp: 'uglyWomanAvatar', a: 15};
-
-        redis.hset('chat:session:store', 'uglyValueMan', JSON.stringify({user_id: this.second, role: 'man'}));
-        redis.hset('chat:session:store', 'uglyValueWoman', JSON.stringify({user_id: this.first, role: 'woman'}));
-
-        redis.hset('chat_settings:103', 'sound', 'true');
-        redis.hset('chat_settings:103', 'notifications', 'custom');
-
-        redis.hset('user_profiles', '137', JSON.stringify(this.man_profile));
-        redis.hset('user_profiles', '103', JSON.stringify(this.woman_profile));
-
-        this.man.on('message', function (message) {
-            var m = utils.getProps(message, ['reason', 'method', 'payload']);
-
-            _test.man.emit(m.reason + '_' + m.method, m.payload);
-        });
-
-        this.man.on('authorize_success', function (method) {
-            cookieStub.restore();
-            cookieStub = sandbox.stub(utils, 'getCookie').returns('uglyValueWoman');
-
-            _test.man.send(JSON.stringify({resource: 'sessions', method: 'patch', payload: {
-                field: 'mode',
-                value: 'chat'
-            }}));
-        });
-
-        this.man.on('sessions_push', function (method) {
-            initWoman();
-        });
-
-        function initWoman() {
-            _test.woman = new WebSocket('ws://localhost:' + port);
-
-            _test.woman.on('message', function (message) {
-                var m = utils.getProps(message, ['reason', 'method', 'payload']);
-
-                _test.woman.emit(m.reason + '_' + m.method, m.payload);
+        Man.get(137, 'chat')
+            .then(function (man) {
+                _test.man = man;
+                Woman.get(103, 'page')
+                    .then(function (woman) {
+                        _test.woman = woman;
+                        done();
+                    });
             });
-
-            _test.woman.on('authorize_success', function () {
-                _test.woman.send(JSON.stringify({resource: 'sessions', method: 'patch', payload: {
-                    field: 'mode',
-                    value: 'page'
-                }}));
-                done();
-            });
-        }
     });
 
     afterEach(function (done) {
@@ -109,7 +67,7 @@ describe('Page mode', function () {
         beforeEach(function () {
             var _test = this;
 
-            this.woman.on('settings_replace', function () {
+            this.woman.on('settings_replace', function (payload) {
                 _test.man.send(JSON.stringify({
                     resource: 'messages',
                     method: 'post',
@@ -122,15 +80,14 @@ describe('Page mode', function () {
             var _test = this;
 
             this.woman.on('messages_push', function (payload) {
-                expect(payload.avatar).to.eql(_test.man_profile.mp);
-                expect(payload.age).to.eql(_test.man_profile.a);
-                expect(payload.name).to.eql(_test.man_profile.n);
+                expect(payload.avatar).to.eql(_test.man.profile.mp);
+                expect(payload.age).to.eql(_test.man.profile.a);
+                expect(payload.name).to.eql(_test.man.profile.n);
                 done();
             });
         });
 
         it('should store received message in redis', function (done) {
-            this.timeout(10000);
             var _test = this;
 
             this.woman.on('messages_push', function (payload) {
@@ -139,7 +96,7 @@ describe('Page mode', function () {
 
                     var m = utils.getProps(data);
 
-                    expect(data).to.have.length.of.at.least(1);
+                    expect(data).to.have.length(1);
                     expect(m.sender_id).to.eql(_test.second);
                     expect(m.recipient_id).to.eql(_test.first);
                     expect(m.text).to.eql(_test.message_from_man.text);
