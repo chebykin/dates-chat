@@ -53,10 +53,10 @@ describe('Dialogs collection', function () {
             men.all[64] = [{}, {}];
             women.all[553] = [{}, {}];
 
-            dialogs.between(103, 137)._state = 'INITIALIZED';
-            dialogs.between(103, 27)._state = 'ON';
-            dialogs.between(103, 64)._state = "MANUAL_OFF";
-            dialogs.between(553, 64)._state = 'ON';
+            dialogs.between(103, 137)._state = 'initialized';
+            dialogs.between(103, 27)._state = 'on';
+            dialogs.between(103, 64)._state = "manual_off";
+            dialogs.between(553, 64)._state = 'on';
         });
 
         afterEach(function () {

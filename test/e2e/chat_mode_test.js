@@ -15,14 +15,6 @@ describe('Chat mode', function () {
         this.second = 137;
         this.message_from_woman = {sender_id: this.first, recipient_id: this.second, text: 'Hi man!'};
         this.message_from_man = {sender_id: this.second, recipient_id: this.first, text: 'Hello from me;)'};
-
-        nock(config.billing.hostname + ':' + config.ports.billing)
-            .get(config.billing.path + '/wallets/137')
-            .reply(200, {ok: true, balance: '43'});
-
-        nock(config.billing.hostname + ':' + config.ports.billing)
-            .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 14})
-            .reply(200, {ok: true, new_balance: '43'});
     });
 
     beforeEach(function () {
@@ -35,6 +27,14 @@ describe('Chat mode', function () {
 
         this.man = Man.get(137, 'chat');
         this.woman = Woman.get(103, 'chat');
+
+        nock(config.billing.hostname + ':' + config.ports.billing)
+            .get(config.billing.path + '/wallets/137')
+            .reply(200, {ok: true, balance: '43'});
+
+        nock(config.billing.hostname + ':' + config.ports.billing)
+            .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 14})
+            .reply(200, {ok: true, new_balance: '43'});
     });
 
     afterEach(function (done) {
@@ -142,6 +142,43 @@ describe('Chat mode', function () {
                             done();
                         });
                     }
+                });
+            });
+        });
+    });
+
+    describe('on dialog on', function () {
+        it('should keep dialog on status on front-end after page reload on chat mode', function (done) {
+            var _test = this;
+
+            this.woman.on('settings_replace', function () {
+                _test.man.send(JSON.stringify({
+                    resource: 'messages',
+                    method: 'post',
+                    payload: _test.message_from_man
+                }));
+            });
+
+            this.woman.on('messages_push', function () {
+                _test.woman.send(JSON.stringify({
+                    resource: 'messages',
+                    method: 'post',
+                    payload: _test.message_from_woman
+                }));
+            });
+
+            this.man.on('dialogs_create', function (payload) {
+                var woman;
+
+                expect(payload.contact).to.equal(103);
+                _test.woman.close();
+
+                woman = Woman.get(103, 'chat');
+
+                woman.on('dialogs_replace', function (payload) {
+                    expect(payload).to.have.property('contacts')
+                        .include(137);
+                    done();
                 });
             });
         });
