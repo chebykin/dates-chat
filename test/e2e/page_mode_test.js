@@ -9,7 +9,7 @@ var WebSocket = require('ws'),
     dialogs = require('../../lib/dialogs_collection'),
     Dialog = require('../../lib/dialog'),
     redis = require('../../lib/redis').create(),
-    port = 20900,
+    port = process.env.PORT,
     sandbox;
 
 describe('Page mode', function () {
@@ -95,43 +95,6 @@ describe('Page mode', function () {
                     expect(m.recipient_id).to.eql(_test.first);
                     expect(m.text).to.eql(_test.message_from_man.text);
                     done();
-                });
-            });
-        });
-
-        it('should send all messages from dialog', function (done) {
-            var _test = this,
-                messagesCounter = 0,
-                message1,
-                message2,
-                womanChatMode;
-
-            message1 = {
-                resource: 'messages',
-                method: 'post',
-                payload: {"sender_id":137,"recipient_id":103,"text":"I'm stranger;)"}
-            };
-
-            message2 = {
-                resource: 'messages',
-                method: 'post',
-                payload: {"sender_id":137,"recipient_id":103,"text":"There?"}
-            };
-
-            this.man.on('settings_replace', function () {
-                _test.man.send(JSON.stringify(message1));
-                _test.man.send(JSON.stringify(message2));
-
-                _test.woman.on('messages_push', function () {
-                    if (++messagesCounter ===  2) {
-                        womanChatMode = Woman.get(103, 'chat');
-
-                        womanChatMode.on('messages_replace', function (payload) {
-                            expect(payload).to.have.property('137')
-                                .with.length(3);
-                            done();
-                        });
-                    }
                 });
             });
         });

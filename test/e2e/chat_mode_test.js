@@ -6,7 +6,7 @@ var WebSocket = require('ws'),
     app = require('../../app'),
     utils = require('../../lib/utils'),
     redis = require('../../lib/redis').create(),
-    port = 20900,
+    port = process.env.PORT,
     sandbox;
 
 describe('Chat mode', function () {
@@ -23,6 +23,12 @@ describe('Chat mode', function () {
         nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 14})
             .reply(200, {ok: true, new_balance: '43'});
+
+        app.wss.close();
+    });
+
+    after(function () {
+        app.listen(port);
     });
 
     beforeEach(function () {
@@ -91,6 +97,58 @@ describe('Chat mode', function () {
                     done();
                 });
 
+            });
+        });
+    });
+
+    describe('on dialog init', function () {
+        it('should send all messages from dialog', function (done) {
+            nock(config.billing.hostname + ':' + config.ports.billing)
+                .get(config.billing.path + '/wallets/137')
+                .thrice()
+                .reply(200, {ok: true, balance: '43'});
+
+            var _test = this,
+                messagesCounter = 0,
+                message1,
+                message2,
+                womanChatMode;
+
+            message1 = {
+                resource: 'messages',
+                method: 'post',
+                payload: {"sender_id":137,"recipient_id":103,"text":"I'm stranger;)"}
+            };
+
+            message2 = {
+                resource: 'messages',
+                method: 'post',
+                payload: {"sender_id":137,"recipient_id":103,"text":"There?"}
+            };
+
+            this.woman.on('settings_replace', function () {
+                _test.man.send(JSON.stringify({
+                    resource: 'messages',
+                    method: 'post',
+                    payload: _test.message_from_man
+                }));
+            });
+
+            this.man.on('settings_replace', function () {
+                _test.man.send(JSON.stringify(message1));
+                _test.man.send(JSON.stringify(message2));
+
+                _test.woman.on('messages_push', function () {
+                    if (++messagesCounter ===  1) {
+                        womanChatMode = Woman.get(103, 'chat');
+
+                        womanChatMode.on('messages_replace', function (payload) {
+                            expect(payload).to.have.property('137')
+                                .with.length(3);
+                            done();
+                        });
+                    }
+                });
             });
         });
     });

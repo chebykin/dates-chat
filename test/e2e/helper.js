@@ -35,6 +35,10 @@ humanFactory = function (id, role, pageMode) {
         }}));
     });
 
+    human.on('rollback_push', function (payload) {
+        console.error(payload.description + ' Contact #' + payload.contact_id);
+    });
+
     return human;
 };
 
