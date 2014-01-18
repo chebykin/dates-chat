@@ -1,7 +1,6 @@
 "use strict";
 
 var WebSocket = require('ws'),
-    EventEmitter = require('events').EventEmitter,
     nock = require('nock'),
     chat = require('../../lib/chat'),
     app = require('../../app'),
