@@ -5,7 +5,10 @@ var WebSocket = require('ws'),
     nock = require('nock'),
     chat = require('../../lib/chat'),
     app = require('../../app'),
+    women = require('../../lib/user').women,
     utils = require('../../lib/utils'),
+    dialogs = require('../../lib/dialogs_collection'),
+    Dialog = require('../../lib/dialog'),
     redis = require('../../lib/redis').create(),
     port = 20900,
     sandbox;
@@ -21,10 +24,8 @@ describe('Page mode', function () {
             .reply(200, {ok: true, new_balance: '43'});
     });
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
-
-        var _test = this;
 
         this.first = 103;
         this.second = 137;
@@ -34,15 +35,8 @@ describe('Page mode', function () {
 
         redis.flushall();
 
-        Man.get(137, 'chat')
-            .then(function (man) {
-                _test.man = man;
-                Woman.get(103, 'page')
-                    .then(function (woman) {
-                        _test.woman = woman;
-                        done();
-                    });
-            });
+        this.man = Man.get(137, 'chat');
+        this.woman = Woman.get(103, 'page');
     });
 
     afterEach(function (done) {
@@ -67,13 +61,14 @@ describe('Page mode', function () {
         beforeEach(function () {
             var _test = this;
 
-            this.woman.on('settings_replace', function (payload) {
+            this.woman.on('settings_replace', function () {
                 _test.man.send(JSON.stringify({
                     resource: 'messages',
                     method: 'post',
                     payload: _test.message_from_man
                 }));
             });
+
         });
 
         it('should receive it with sender profile data', function (done) {
@@ -101,6 +96,43 @@ describe('Page mode', function () {
                     expect(m.recipient_id).to.eql(_test.first);
                     expect(m.text).to.eql(_test.message_from_man.text);
                     done();
+                });
+            });
+        });
+
+        it('should send all messages from dialog', function (done) {
+            var _test = this,
+                messagesCounter = 0,
+                message1,
+                message2,
+                womanChatMode;
+
+            message1 = {
+                resource: 'messages',
+                method: 'post',
+                payload: {"sender_id":137,"recipient_id":103,"text":"I'm stranger;)"}
+            };
+
+            message2 = {
+                resource: 'messages',
+                method: 'post',
+                payload: {"sender_id":137,"recipient_id":103,"text":"There?"}
+            };
+
+            this.man.on('settings_replace', function () {
+                _test.man.send(JSON.stringify(message1));
+                _test.man.send(JSON.stringify(message2));
+
+                _test.woman.on('messages_push', function () {
+                    if (++messagesCounter ===  2) {
+                        womanChatMode = Woman.get(103, 'chat');
+
+                        womanChatMode.on('messages_replace', function (payload) {
+                            expect(payload).to.have.property('137')
+                                .with.length(3);
+                            done();
+                        });
+                    }
                 });
             });
         });

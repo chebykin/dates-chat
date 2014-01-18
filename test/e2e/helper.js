@@ -1,29 +1,25 @@
 var utils = require('../../lib/utils'),
     redis = require('../../lib/redis').create(),
     WebSocket = require('ws'),
-    port = 20900,
-    sandbox;
+    port = 20900;
 
 var man_profile = {n: 'Vasya', mp: 'uglyManAvatar', a: 16},
     woman_profile = {n: 'Olga', mp: 'uglyWomanAvatar', a: 15};
 
 humanFactory = function (id, role, pageMode) {
     var sessionKey = id + role + pageMode,
-        deferred = Q.defer(),
-        _test = this,
         profile = (role === 'man' ? man_profile : woman_profile),
-        cookieStub,
         human;
-
-    sandbox = sinon.sandbox.create();
-    sandbox.stub(utils, 'getCookie').returns(sessionKey);
 
     redis.hset('chat:session:store', sessionKey, JSON.stringify({user_id: id, role: role}));
     redis.hset('user_profiles', id, JSON.stringify(profile));
     redis.hset('chat_settings:' + id, 'sound', 'true');
     redis.hset('chat_settings:' + id, 'notifications', 'custom');
 
-    human = new WebSocket('ws://localhost:' + port);
+    human = new WebSocket('ws://localhost:' + port, {
+        headers: {cookie: '_v_token_key=' + sessionKey}
+    });
+
     human.profile = profile;
 
     human.on('message', function (message) {
@@ -35,14 +31,11 @@ humanFactory = function (id, role, pageMode) {
     human.on('authorize_success', function () {
         human.send(JSON.stringify({resource: 'sessions', method: 'patch', payload: {
             field: 'mode',
-            value: 'page'
+            value: pageMode
         }}));
-
-        sandbox.restore();
-        deferred.resolve(human);
     });
 
-    return deferred.promise;
+    return human;
 };
 
 function Man() {}
