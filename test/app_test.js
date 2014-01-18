@@ -2,15 +2,11 @@ var app = require('../app.js'),
     utils = require('../lib/utils'),
     sessions = require('../actions/sessions'),
     WebSocket = require('ws'),
-    port = 20400;
+    port = process.env.PORT;
 
 describe('Chat app', function () {
     before(function () {
-        this.server = app.listen(++port);
-    });
-
-    after(function () {
-        this.server.close();
+        app.restart(port);
     });
 
     it('should listen on localhost:process.env.PORT', function (done) {

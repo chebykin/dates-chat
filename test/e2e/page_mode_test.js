@@ -28,7 +28,7 @@ describe('Page mode', function () {
 
         this.first = 103;
         this.second = 137;
-        this.wss = app.listen(port);
+        this.wss = app.restart(port);
         this.message_from_man = {sender_id: this.second, recipient_id: this.first, text: 'Hello from me;)'};
         this.dialog_key = 'dialogs:' + this.second + '_' + this.first;
 
@@ -40,7 +40,6 @@ describe('Page mode', function () {
 
     afterEach(function (done) {
         sandbox.restore();
-        app.wss.close();
         redis.flushall(function () {
             done();
         });

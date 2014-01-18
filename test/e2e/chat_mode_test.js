@@ -23,19 +23,14 @@ describe('Chat mode', function () {
         nock(config.billing.hostname + ':' + config.ports.billing)
             .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 14})
             .reply(200, {ok: true, new_balance: '43'});
-
-        app.wss.close();
-    });
-
-    after(function () {
-        app.listen(port);
     });
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+
         redis.flushall();
 
-        this.wss = app.listen(port);
+        this.wss = app.restart(port);
         this.dialog_key = 'dialogs:' + this.second + '_' + this.first;
 
         this.man = Man.get(137, 'chat');
@@ -44,7 +39,6 @@ describe('Chat mode', function () {
 
     afterEach(function (done) {
         sandbox.restore();
-        app.wss.close();
         redis.flushall(function () {
             done();
         });
