@@ -14,6 +14,7 @@ var config = require('./config'),
     messages_actions = require('./actions/messages'),
     sessions_actions = require('./actions/sessions'),
     settings_actions = require('./actions/settings'),
+    recent_users_actions = require('./actions/recent_users_action'),
     dialogs_actions= require('./actions/dialogs'),
     util = require('util'),
     men = require('./lib/user').men,
@@ -22,9 +23,11 @@ var config = require('./config'),
 module.exports = app;
 
 app.use('messages', messages_actions);
+app.use('messages', messages_actions);
 app.use('sessions', sessions_actions);
 app.use('settings', settings_actions);
 app.use('dialogs', dialogs_actions);
+app.use('recent_users', recent_users_actions);
 
 app.listen({port: config.ports.websocket});
 

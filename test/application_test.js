@@ -74,7 +74,7 @@ describe('Application', function () {
             });
 
             this.ws.on('message', function (data) {
-                JSON.parse(data).should.be.eql({reason: 'error', description: _test.error_text});
+                JSON.parse(data).should.be.eql({reason: 'error', method: 'push', description: _test.error_text});
                 done();
             });
         });
@@ -90,7 +90,7 @@ describe('Application', function () {
             });
 
             this.ws.on('message', function (data) {
-                JSON.parse(data).should.be.eql({reason: 'error', description: 'Authorization error.'});
+                JSON.parse(data).should.be.eql({reason: 'error', method: 'push', description: 'Authorization error.'});
                 setTimeout(function () {
                     expect(_test.ws.readyState).to.be.within(2, 3);
                     done();

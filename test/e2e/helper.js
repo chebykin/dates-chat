@@ -39,6 +39,10 @@ humanFactory = function (id, role, pageMode) {
         console.error(payload.description + ' Contact #' + payload.contact_id);
     });
 
+    human.on('error_push', function (payload) {
+        console.error(payload.description + ' Contact #' + payload.contact_id);
+    });
+
     return human;
 };
 
