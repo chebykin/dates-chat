@@ -34,6 +34,9 @@ describe('Recent Users', function () {
 
         this.man = Man.get(137, 'chat');
         this.woman = Woman.get(103, 'chat');
+        this.first = Woman.get(67, 'chat');
+        this.second = Woman.get(27, 'chat');
+        this.third = Woman.get(15, 'chat');
 
         nock(config.billing.hostname + ':' + config.ports.billing)
             .get(config.billing.path + '/wallets/137')
@@ -54,7 +57,19 @@ describe('Recent Users', function () {
     describe('on new connection', function() {
         it('should be fully replaced', function (done) {
             this.man.on('recent_users_replace', function (payload) {
-                expect(payload).to.have.members([67, 27, 15]);
+                expect(payload).to.have.deep.property('order[0]', 67);
+                expect(payload).to.have.deep.property('order[1]', 15);
+                expect(payload).to.have.deep.property('order[2]', 27);
+                expect(payload).to.have.property('profiles').that.is.an('object');
+                expect(payload.profiles).to.have.property('15')
+                    .that.is.an('string')
+                    .with.equal('{"n":"Olga","mp":"uglyWomanAvatar","a":15}');
+                expect(payload.profiles).to.have.property('15')
+                    .that.is.an('string')
+                    .with.equal('{"n":"Olga","mp":"uglyWomanAvatar","a":15}');
+                expect(payload.profiles).to.have.property('27')
+                    .that.is.an('string')
+                    .with.equal('{"n":"Olga","mp":"uglyWomanAvatar","a":15}');
                 done();
             });
         });
@@ -96,12 +111,24 @@ describe('Recent Users', function () {
                 }));
             });
 
-            manListener = function (result) {
-                expect(result).to.have.members([67, 27, 15]);
+            manListener = function (payload) {
+                expect(payload).to.have.deep.property('order')
+                    .that.have.length(3)
+                    .that.have.members([67, 27, 15]);
+                expect(payload).to.have.property('profiles').that.is.an('object');
+                expect(payload.profiles).to.have.property('15')
+                    .that.is.an('string')
+                    .with.equal('{"n":"Olga","mp":"uglyWomanAvatar","a":15}');
 
                 _test.man.removeListener('recent_users_replace', manListener);
-                _test.man.on('recent_users_replace', function (result) {
-                    expect(result).to.have.members([103, 67, 27, 15]);
+
+                _test.man.on('recent_users_replace', function (payload) {
+                    expect(payload).to.have.deep.property('order')
+                        .that.have.length(4)
+                        .that.have.members([103, 67, 27, 15]);
+                    expect(payload).to.have.property('profiles')
+                        .that.have.deep.property('103')
+                        .that.equal('{"n":"Olga","mp":"uglyWomanAvatar","a":15}');
                     done();
                 });
             };
@@ -111,7 +138,7 @@ describe('Recent Users', function () {
     });
 
     describe('on clear recent users button click', function () {
-        it('should be removed from redis db and be fully replaced on client', function (done) {
+        it('should be removed from redis db and be fully replaced on client if there no active dialogs for requester', function (done) {
             var _test = this,
                 manListener;
 
@@ -125,19 +152,22 @@ describe('Recent Users', function () {
             });
 
             manListener = function (result) {
-                expect(result).to.have.members([67, 27, 15]);
+                expect(result).to.have.property('order')
+                    .that.have.members([67, 27, 15]);
 
                 _test.man.removeListener('recent_users_replace', manListener);
-                _test.man.on('recent_users_replace', function (result) {
-                    expect(result).to.have.members([]);
+                _test.man.on('recent_users_replace', function () {
                     RecentUsers.all(137).then(function (result) {
-                        expect(result).to.have.members([]);
                         done();
                     });
                 });
             };
 
             this.man.on('recent_users_replace', manListener);
+        });
+
+        it('should not remove user from recent users if requester have active dialog with him', function () {
+
         });
     });
 });

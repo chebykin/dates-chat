@@ -11,11 +11,20 @@ module.exports = function (ws, method) {
     var current = currentCollection(ws);
 
     switch (method) {
-        case 'get':
-            return send(ws, 'recent_users_replace', recentUsers.all(ws.user_id));
         case 'delete_all':
-            return current.then(function (collection) {
-                collection.send(ws.user_id, 'recent_users_replace', recentUsers.delete_all(ws.user_id));
+            // collection->recent_users_ids->users_profiles
+            return current
+                .then(function (collection) {
+                    recentUsers.delete_all(ws.user_id)
+                        .then(function (recent_users_ids) {
+                            collection.users_profiles(recent_users_ids)
+                                .then(function (profiles) {
+                                    collection.send(ws.user_id, 'recent_users_replace', Q.resolve({
+                                        order: recent_users_ids,
+                                        profiles: profiles
+                                    }));
+                                });
+                        });
             });
         default:
             return Q.reject(new Error('messages action: ws is not WebSocket instance'));

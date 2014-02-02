@@ -16,14 +16,21 @@ module.exports = function (ws, method, payload) {
                     return collection.get_messages(ws.user_id);
                 });
         case 'post':
+            // collection->deliver_message->recent_users_ids->users_profiles
             return currentCollection(ws)
                 .then(function (collection) {
                     collection.deliver_message(payload, ws)
                         .then(function () {
-                            collection.send(ws.user_id, 'recent_users_replace', recentUsers.all(ws.user_id));
-                        })
-                        .fail(function (reason) {
-                            console.log(reason);
+                            recentUsers.all(ws.user_id)
+                                .then(function (recent_users_ids) {
+                                    collection.users_profiles(recent_users_ids)
+                                        .then(function(profiles) {
+                                            collection.send(ws, 'recent_users_replace', Q.resolve({
+                                                order: recent_users_ids,
+                                                profiles: profiles
+                                            }));
+                                        });
+                                });
                         });
                 });
         case 'delete':
