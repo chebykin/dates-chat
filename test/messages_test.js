@@ -1,4 +1,4 @@
-var messages = require('../actions/messages'),
+var messages = require('../controllers/messages'),
     WebSocket = require('ws'),
     redis = require('../lib/redis').create(),
     women = require('../lib/user').women,

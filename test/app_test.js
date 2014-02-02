@@ -1,6 +1,6 @@
 var app = require('../app.js'),
     utils = require('../lib/utils'),
-    sessions = require('../actions/sessions'),
+    sessions = require('../controllers/sessions'),
     WebSocket = require('ws'),
     port = process.env.PORT;
 
