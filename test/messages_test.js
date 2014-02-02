@@ -1,4 +1,4 @@
-var messages = require('../controllers/messages'),
+var messages = require('../controllers/messages_controller'),
     WebSocket = require('ws'),
     redis = require('../lib/redis').create(),
     women = require('../lib/user').women,
@@ -30,7 +30,7 @@ describe.skip('Messages', function () {
 
         womenMock.expects('ids').once().returns([345, 346]);
 
-        messages(manWS, 'post', message);
+        messages_controller(manWS, 'post', message);
 
         anotherManWSMock.verify();
         anotherWomanWSMock.verify();
@@ -53,7 +53,7 @@ describe.skip('Messages', function () {
         men.all[300] = [manWS];
         women.all[400] = [];
 
-        messages(manWS, 'delete', delete_request);
+        messages_controller(manWS, 'delete', delete_request);
     });
 
     describe.skip('delete action', function () {
@@ -71,7 +71,7 @@ describe.skip('Messages', function () {
             manWS.role = 'man';
             manWS.user_id = '100';
 
-            messages(manWS, 'delete', delete_request);
+            messages_controller(manWS, 'delete', delete_request);
         });
 
         it('should be available only for men');
@@ -86,7 +86,7 @@ describe.skip('Messages', function () {
             manWS.role = 'man';
             manWS.user_id = '100';
 
-            messages(manWS, 'delete', delete_request);
+            messages_controller(manWS, 'delete', delete_request);
         });
 
     });
