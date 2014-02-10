@@ -1,7 +1,8 @@
 "use strict";
 
-var men = require('../lib/user').men,
-    women = require('../lib/user').women,
+var user = require('../lib/user'),
+    men = user.men,
+    women = user.women,
     redis = require('../lib/redis').create(),
     Dialog = require('../lib/dialog'),
     dialogs = require('../lib/dialogs_collection');
@@ -17,6 +18,8 @@ describe('Dialog', function () {
 
         women.all[this.first] = [{}, {}];
         men.all[this.second] = [{}, {}];
+        user.user_sex[137] = 'men';
+        user.user_sex[103] = 'women';
     });
 
     beforeEach(function () {
@@ -167,6 +170,8 @@ describe('Dialog', function () {
                it("should keep 'initialized' state", function (done) {
                    var dialog = this.dialog,
                        deferred = Q.defer();
+
+                   sinon.stub(user, 'currentCollection').returns(men);
 
                    dialog.state = 'initialized';
                    redis.rpush(this.redis_key, JSON.stringify(this.message_from_man));

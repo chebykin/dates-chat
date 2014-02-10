@@ -1,7 +1,7 @@
 {
   "name": "uabrides-chat",
   "description": "BestUABrides.com chat",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "app.js",
   "private": true,
   "scripts": {

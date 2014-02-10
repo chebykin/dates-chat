@@ -14,7 +14,7 @@ describe('Chat app', function () {
             ws = new WebSocket('ws://localhost:' + port);
 
         sandbox.stub(app, 'handle').returns(Q.resolve({}));
-        sandbox.stub(app.stack, 'sessions').returns(Q.resolve({}));
+        sandbox.stub(app.stack.sessions.request, 'post').returns(Q.resolve({}));
 
         ws.on('open', function () {
             expect(ws.readyState).to.equal(WebSocket.OPEN);

@@ -1,23 +1,21 @@
 "use strict";
 
+var SettingsRequest = module.exports.request = {};
+var SettingsResponse = module.exports.response = {};
+
 var WebSocket = require('ws'),
     Q = require('q'),
-    oppositeCollection = require('../lib/user').oppositeCollection,
-    currentCollection = require('../lib/user').currentCollection;
+    send = require('../lib/sender').send,
+    Settings = require('../models/settings');
 
-module.exports = function (ws, method, payload) {
-    switch (method) {
-        case 'get':
-            return currentCollection(ws).
-                then(function (collection) {
-                    collection.get_settings(ws);
-                });
-        case 'post':
-            return Q.resolve(currentCollection(ws)
-                .then(function (collection) {
-                    collection.update_settings(ws.user_id, payload);
-                }));
-        default:
-            return Q.reject(new Error('Settings action: wrong method'));
-    }
+SettingsRequest.get = function (ws) {
+    return SettingsResponse.replace(ws);
+};
+
+SettingsRequest.post = function (ws, payload) {
+    return Q.resolve(ws.collection.update_settings(ws.user_id, payload));
+};
+
+SettingsResponse.replace = function (user_id) {
+    return [{'settings#replace': Settings.get(user_id)}];
 };

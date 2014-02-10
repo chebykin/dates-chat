@@ -48,7 +48,7 @@ describe('Page mode', function () {
     describe('after connection via ws', function () {
         it('should receive settings object', function (done) {
             this.woman.on('settings_replace', function (payload) {
-                expect(payload.play_sound).to.be.true;
+                expect(payload.play_sound).to.be.false;
                 expect(payload.notifications).to.equal('js');
                 done();
             });
@@ -83,7 +83,7 @@ describe('Page mode', function () {
         it('should store received message in redis', function (done) {
             var _test = this;
 
-            this.woman.on('messages_push', function (payload) {
+            this.woman.on('messages_push', function () {
                 redis.lrange(_test.dialog_key, 0, -1, function (err, data) {
                     if (err) done(err);
 

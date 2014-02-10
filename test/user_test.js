@@ -1,6 +1,7 @@
 "user strict";
 
-var men = require('../lib/user').men;
+var user = require('../lib/user'),
+    men = user.men;
 
 describe('User', function () {
     it('should return all keys (integer) for online users', function () {

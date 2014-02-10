@@ -28,7 +28,7 @@ humanFactory = function (id, role, pageMode) {
         human.emit(m.reason + '_' + m.method, m.payload);
     });
 
-    human.on('authorize_success', function () {
+    human.on('authorization_success', function () {
         human.send(JSON.stringify({resource: 'sessions', method: 'patch', payload: {
             field: 'mode',
             value: pageMode
@@ -40,7 +40,11 @@ humanFactory = function (id, role, pageMode) {
     });
 
     human.on('error_push', function (payload) {
-        console.error(payload.description + ' Contact #' + payload.contact_id);
+        console.error('#ERROR PUSHED: ', payload);
+    });
+
+    human.on('close', function () {
+        console.log('#USER #' + id + 'DISCONNECTED', sessionKey);
     });
 
     return human;

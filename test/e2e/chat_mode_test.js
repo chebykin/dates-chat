@@ -52,7 +52,7 @@ describe('Chat mode', function () {
                 expect(payload.text).to.equal(_test.message_from_woman.text);
                 expect(payload.sender_id).to.equal(_test.message_from_woman.sender_id);
                 expect(payload.recipient_id).to.equal(_test.message_from_woman.recipient_id);
-
+                console.log('>>>>>>>>>>>>>>>>>>MAN MESSAGE RECEIVED');
                 setTimeout(function () {
                     _test.man.send(JSON.stringify({
                         resource: 'dialogs',
@@ -64,7 +64,8 @@ describe('Chat mode', function () {
                 }, 100);
             });
 
-            this.woman.on('sessions_push', function () {
+            this.woman.on('settings_replace', function () {
+                console.log('>>>>>>>>>>>>>>>>>>SETTINGS RECEIVED');
                 _test.man.send(JSON.stringify({
                     resource: 'messages',
                     method: 'post',
@@ -85,6 +86,7 @@ describe('Chat mode', function () {
             });
 
             this.woman.on('dialogs_create', function (payload) {
+
                 expect(payload.contact).to.equal(_test.second);
                 _test.woman.on('dialogs_destroy', function (payload) {
                     expect(payload.contact).to.equal(_test.second);
