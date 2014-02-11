@@ -3,7 +3,8 @@
 var OnlineUsersRequest = module.exports.request = {};
 var OnlineUsersResponse = module.exports.response = {};
 
-var Users = require('../lib/user'),
+var user = require('../lib/user'),
+    config = require('../config'),
     send = require('../lib/user').send;
 
 //SettingsRequest.get = function (ws) {
@@ -14,14 +15,14 @@ var Users = require('../lib/user'),
 //    return Q.resolve(ws.collection.update_settings(ws.user_id, payload));
 //};
 
-// Send new users from current collection to others
-OnlineUsersResponse.tick = function (users) {
-    var collection = Users.currentCollection(users[0]);
-    var new_ids = collection.get_online_users();
-    var opposite_ids = collection.opposite.ids();
-//
-    if (Array.isArray(new_ids) && Array.isArray(opposite_ids) && opposite_ids.length) {
-        return [{'online_users#replace': collection.users_profiles(new_ids)}];
+// New users from opposite collection are sent to current
+OnlineUsersResponse.tick = function (collection) {
+    var opposite_new_ids = collection.opposite.get_online_users();
+    var current_ids = collection.ids();
+
+    if (Array.isArray(opposite_new_ids) && Array.isArray(current_ids) && current_ids.length) {
+
+        return [{'online_users#replace': collection.opposite.users_profiles(opposite_new_ids)}];
     } else {
         return null;
     }

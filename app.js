@@ -11,6 +11,7 @@ var config = require('./config'),
     dialogs_controller= require('./controllers/dialogs_controller'),
     recent_users_controller = require('./controllers/recent_users_controller'),
     online_users_controller = require('./controllers/online_users_controller'),
+    respond = require('./lib/responder').respond,
     util = require('util'),
     men = require('./lib/user').men,
     women = require('./lib/user').women;
@@ -24,9 +25,8 @@ app.use('online_users', online_users_controller);
 
 app.listen({port: config.ports.websocket});
 
-//setInterval(function () {
-//    men.tick_update_online_users();
-//    women.tick_update_online_users();
-//}, config.online_check_interval);
-
+setInterval(function () {
+    respond.to_collection(men).using('online_users#tick');
+    respond.to_collection(women).using('online_users#tick');
+}, config.intervals.online_check_interval);
 // TODO: Cam online status.

@@ -52,7 +52,7 @@ describe('Chat mode', function () {
                 expect(payload.text).to.equal(_test.message_from_woman.text);
                 expect(payload.sender_id).to.equal(_test.message_from_woman.sender_id);
                 expect(payload.recipient_id).to.equal(_test.message_from_woman.recipient_id);
-                console.log('>>>>>>>>>>>>>>>>>>MAN MESSAGE RECEIVED');
+
                 setTimeout(function () {
                     _test.man.send(JSON.stringify({
                         resource: 'dialogs',
@@ -65,7 +65,6 @@ describe('Chat mode', function () {
             });
 
             this.woman.on('settings_replace', function () {
-                console.log('>>>>>>>>>>>>>>>>>>SETTINGS RECEIVED');
                 _test.man.send(JSON.stringify({
                     resource: 'messages',
                     method: 'post',
@@ -183,6 +182,33 @@ describe('Chat mode', function () {
                     done();
                 });
             });
+        });
+    });
+
+    describe('online users update', function () {
+        it('should send update only if online user ids are changed', function (done) {
+            var _test = this,
+                manListener;
+
+            this.timeout(3000);
+
+            manListener = function (users) {
+                expect(users).to.have.property('103')
+                    .that.is.a('string');
+                _test.man.removeListener('online_users_replace', manListener);
+
+                _test.man.on('online_users_replace', function (users) {
+                    expect(users).to.have.keys(['103', '225', '614']);
+                    done();
+                });
+
+                setTimeout(function () {
+                    var woman1 = Woman.get(225, 'chat');
+                    var woman2 = Woman.get(614, 'chat');
+                }, 1100);
+            };
+
+            this.man.on('online_users_replace', manListener);
         });
     });
 });

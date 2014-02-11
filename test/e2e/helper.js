@@ -24,7 +24,7 @@ humanFactory = function (id, role, pageMode) {
 
     human.on('message', function (message) {
         var m = utils.getProps(message, ['reason', 'method', 'payload']);
-
+//        console.log(m.reason + '_' + m.method);
         human.emit(m.reason + '_' + m.method, m.payload);
     });
 
