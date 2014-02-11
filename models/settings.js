@@ -1,6 +1,7 @@
 var Settings = module.exports = {};
 
 var send = require('../lib/sender').send,
+    Q = require('q'),
     redis = require('../lib/redis').current();
 
 Settings.get = function (user_id, fields) {
