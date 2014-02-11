@@ -52,6 +52,7 @@ SessionsRequest.patch = function (ws, payload) {
     if (payload.value === 'chat') {
         ws.mode = 'chat';
 
+        send({mode: 'set'}).to_socket(ws).using('sessions#push');
         respond.to_socket(ws).using('online_users#replace');
         respond.to_socket(ws).using('settings#replace');
         respond.to_socket(ws).using('messages#replace');

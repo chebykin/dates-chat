@@ -185,6 +185,15 @@ describe('Chat mode', function () {
         });
     });
 
+    describe('sessions push', function () {
+        it('should be send after successful session mode set', function (done) {
+            this.woman.on('sessions_push', function (response) {
+                expect(response.mode).to.equal('set');
+                done();
+            });
+        });
+    });
+
     describe('online users update', function () {
         it('should send update only if online user ids are changed', function (done) {
             var _test = this,
