@@ -2,6 +2,7 @@ var Messages = module.exports = {};
 
 var send = require('../lib/sender').send,
     redis = require('../lib/redis').current(),
+    Q = require('q'),
     multi_queue;
 
 Messages.get = function (user_id, is_woman) {
