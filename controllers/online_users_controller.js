@@ -4,16 +4,7 @@ var OnlineUsersRequest = module.exports.request = {};
 var OnlineUsersResponse = module.exports.response = {};
 
 var user = require('../lib/user'),
-    config = require('../config'),
-    send = require('../lib/user').send;
-
-//SettingsRequest.get = function (ws) {
-//    return SettingsResponse.replace(ws);
-//};
-
-//SettingsRequest.post = function (ws, payload) {
-//    return Q.resolve(ws.collection.update_settings(ws.user_id, payload));
-//};
+    config = require('../config');
 
 // New users from opposite collection are sent to current
 OnlineUsersResponse.tick = function (collection) {
