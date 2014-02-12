@@ -194,6 +194,40 @@ describe('Chat mode', function () {
         });
     });
 
+    describe('settings_replace', function () {
+        it('should be send back after successful setting new settings', function (done) {
+            var _test = this,
+                cfg;
+
+            cfg = {
+                play_sound: true,
+                notifications: 'native'
+            };
+
+            function womanListener (settings) {
+                _test.woman.removeAllListeners('settings_replace');
+
+                expect(settings).to.deep.equal({
+                    play_sound: false,
+                    notifications: 'js'
+                });
+
+                _test.woman.on('settings_replace', function (settings) {
+                    expect(settings).to.deep.eql(cfg);
+                    done();
+                });
+
+                _test.woman.send(JSON.stringify({
+                    resource: 'settings',
+                    method: 'post',
+                    payload: cfg
+                }));
+            }
+
+            this.woman.on('settings_replace', womanListener);
+        });
+    });
+
     describe('online users update', function () {
         it('should send update only if online user ids are changed', function (done) {
             var _test = this,

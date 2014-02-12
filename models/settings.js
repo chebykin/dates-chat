@@ -1,7 +1,6 @@
 var Settings = module.exports = {};
 
-var send = require('../lib/sender').send,
-    Q = require('q'),
+var Q = require('q'),
     redis = require('../lib/redis').current();
 
 Settings.get = function (user_id, fields) {
@@ -11,7 +10,7 @@ Settings.get = function (user_id, fields) {
         l;
 
     fields = fields || ['play_sound', 'notifications'];
-    l = fields.l;
+    l = fields.length;
 
     redis.hmget('chat_settings:' + user_id, fields, function (err, obj) {
         if (err) {
@@ -46,7 +45,7 @@ Settings.get = function (user_id, fields) {
 Settings.update_settings = function (user_id, payload) {
     var key = 'chat_settings:' + user_id,
         payload_filtered = {
-            sound: payload.play_sound,
+            play_sound: payload.play_sound,
             notifications: payload.notifications
         };
 
