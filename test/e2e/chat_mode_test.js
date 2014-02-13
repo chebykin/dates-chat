@@ -45,7 +45,7 @@ describe('Chat mode', function () {
     });
 
     describe('about dialog closing', function () {
-        it('should be sent after dialog timeout', function (done) {
+        it('should be sent after manual closing', function (done) {
             var _test = this;
 
             this.man.on('messages_push', function (payload) {
@@ -92,6 +92,56 @@ describe('Chat mode', function () {
                     done();
                 });
 
+            });
+        });
+
+        it('should be sent after dialog timeout', function (done) {
+            var _test = this,
+                clock = sinon.useFakeTimers();
+
+            nock(config.billing.hostname + ':' + config.ports.billing)
+                .get(config.billing.path + '/wallets/137')
+                .reply(200, {ok: true, balance: '43'});
+
+            nock(config.billing.hostname + ':' + config.ports.billing)
+                .post(config.billing.path + '/transactions/', {man_id: 137, woman_id: 103, service: 'chat', amount: 14})
+                .times(4)
+                .reply(200, {ok: true, new_balance: '43'});
+
+            this.man.on('messages_push', function (payload) {
+                expect(payload.text).to.equal(_test.message_from_woman.text);
+                expect(payload.sender_id).to.equal(_test.message_from_woman.sender_id);
+                expect(payload.recipient_id).to.equal(_test.message_from_woman.recipient_id);
+            });
+
+            this.woman.on('sessions_push', function () {
+                _test.man.send(JSON.stringify({
+                    resource: 'messages',
+                    method: 'post',
+                    payload: _test.message_from_man
+                }));
+            });
+
+            this.woman.on('messages_push', function (payload) {
+                expect(payload.text).to.equal(_test.message_from_man.text);
+                expect(payload.sender_id).to.equal(_test.message_from_man.sender_id);
+                expect(payload.recipient_id).to.equal(_test.message_from_man.recipient_id);
+
+                _test.woman.send(JSON.stringify({
+                    resource: 'messages',
+                    method: 'post',
+                    payload: _test.message_from_woman
+                }));
+            });
+
+            this.woman.on('dialogs_create', function (payload) {
+                expect(payload.contact).to.equal(_test.second);
+                _test.woman.on('dialogs_destroy', function (payload) {
+                    expect(payload.contact).to.equal(_test.second);
+                    clock.restore();
+                    done();
+                });
+                clock.tick(310000);
             });
         });
     });
