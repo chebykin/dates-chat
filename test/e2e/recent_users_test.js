@@ -169,6 +169,47 @@ describe('Recent Users', function () {
             this.man.on('recent_users_replace', manListener);
         });
 
-        it('should not remove user from recent users if requester have active dialog with him');
+        it('should not remove user from recent users if requester have active dialog with him', function (done) {
+            var _test = this,
+                manListener;
+
+            redis.zadd('recent_users:137', (new Date().getTime() - 9), 103); // bottom
+
+            manListener = function (result) {
+                _test.man.removeListener('recent_users_replace', manListener);
+
+                expect(result).to.have.property('order')
+                    .that.have.members([103, 67, 27, 15]);
+
+                _test.man.on('recent_users_replace', function (recent_users) {
+                    expect(recent_users).to.have.deep.property('order')
+                        .that.have.members([103]);
+
+                    RecentUsers.all(137).then(function (result) {
+                        expect(result).to.have.members([103]);
+                        done();
+                    });
+                });
+
+                _test.man.on('dialogs_create', function () {
+                    setTimeout(function () {
+                        _test.man.send(JSON.stringify({
+                            resource: 'recent_users',
+                            method: 'destroy'
+                        }));
+                    }, 100);
+                });
+
+                _test.man.send(JSON.stringify({
+                    resource: 'dialogs',
+                    method: 'post',
+                    payload: {
+                        contact_id: 103
+                    }
+                }));
+            };
+
+            this.man.on('recent_users_replace', manListener);
+        });
     });
 });

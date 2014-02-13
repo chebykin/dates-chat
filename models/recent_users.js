@@ -35,3 +35,15 @@ RecentUsers.delete_all = function (user_id) {
 
     return deferred.promise;
 };
+
+RecentUsers.remove = function (user_id, items) {
+    var deferred = Q.defer();
+
+    items.unshift('recent_users:' + user_id);
+    redis.zrem(items, function (err) {
+        if (err) {deferred.reject(err);}
+        deferred.resolve([]);
+    });
+
+    return deferred.promise;
+};
