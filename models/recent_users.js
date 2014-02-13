@@ -2,7 +2,7 @@
 
 module.exports = RecentUsers;
 
-var redis = require('./redis').current(),
+var redis = require('./../lib/redis').current(),
 //    utils = require('./utils'),
     Q = require ('q');
 
