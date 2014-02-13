@@ -3,7 +3,6 @@
 module.exports = RecentUsers;
 
 var redis = require('./../lib/redis').current(),
-//    utils = require('./utils'),
     Q = require ('q');
 
 function RecentUsers() {}

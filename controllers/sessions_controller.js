@@ -57,17 +57,7 @@ SessionsRequest.patch = function (ws, payload) {
         respond.to_socket(ws).using('settings#replace');
         respond.to_socket(ws).using('messages#replace');
         respond.to_socket(ws).using('dialogs#replace');
-
-//        RecentUsers.all(ws.user_id)
-//            .then(function (recent_users_ids) {
-//                _user_collection.users_profiles(recent_users_ids)
-//                    .then(function (profiles) {
-//                        send({
-//                            order: recent_users_ids,
-//                            profiles: profiles
-//                        }).to_socket(ws).using('recent_users#replace');
-//                    });
-//            });
+        respond.to_socket(ws).using('recent_users#replace');
     } else {
         ws.mode = 'page';
         respond.to_socket(ws).using('settings#replace');
