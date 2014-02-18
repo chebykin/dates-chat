@@ -58,6 +58,7 @@ SessionsRequest.patch = function (ws, payload) {
         respond.to_socket(ws).using('messages#replace');
         respond.to_socket(ws).using('dialogs#replace');
         respond.to_socket(ws).using('recent_users#replace');
+        respond.to_socket(ws).using('webcams#replace');
     } else {
         ws.mode = 'page';
         respond.to_socket(ws).using('settings#replace');
