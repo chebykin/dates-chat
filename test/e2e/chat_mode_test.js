@@ -3,6 +3,7 @@
 var WebSocket = require('ws'),
     nock = require('nock'),
     chat = require('../../lib/chat'),
+    config = require('../../config'),
     app = require('../../app'),
     utils = require('../../lib/utils'),
     redis = require('../../lib/redis').create(),
@@ -306,11 +307,17 @@ describe('Chat mode', function () {
     });
 
     describe('webcams update', function () {
+        beforeEach(function (done) {
+            // wait for ws.close() callback will delete webcams status of generated users
+            setTimeout(function () {
+                done();
+            }, 150);
+        });
+
         it('should send update if webcam users changed', function (done) {
             var _test = this,
                 state = {225: 'on', 614: 'on', '755': 'active'},
-                camListener,
-                camListener2;
+                camListener;
 
             this.timeout(3000);
 
@@ -338,7 +345,7 @@ describe('Chat mode', function () {
                             method: 'post',
                             payload: 'on'
                         }));
-                    }, 200);
+                    }, (config.intervals.online_check_interval + 100));
                 });
 
                 woman6.on('sessions_push', function () {
@@ -348,23 +355,16 @@ describe('Chat mode', function () {
                             method: 'post',
                             payload: 'active'
                         }));
-                    }, 200);
+                    }, (config.intervals.online_check_interval + 100));
                 });
 
-                camListener2 = function (cams) {
+                _test.man.on('webcams_replace', function (cams) {
+                    state[114] = 'on';
+                    state[979] = 'active';
+
                     expect(cams).to.deep.equal(state);
-                    _test.man.removeListener('webcams_replace', camListener2);
-
-                    _test.man.on('webcams_replace', function (cams) {
-                        state[114] = 'on';
-                        state[979] = 'active';
-
-                        expect(cams).to.deep.equal(state);
-                        done();
-                    });
-                };
-
-                _test.man.on('webcams_replace', camListener2);
+                    done();
+                });
             };
 
             this.man.on('webcams_replace', camListener);
@@ -373,9 +373,9 @@ describe('Chat mode', function () {
         it('should send update if webcam states changed, but not users', function (done) {
             var _test = this,
                 state = {225: 'on', 614: 'on', '755': 'active'},
-                camListener,
-                camListener2;
+                camListener;
 
+            redis.hmset('webcams:women', state);
             this.timeout(3000);
 
             var woman = Woman.get(225, 'chat');
@@ -383,35 +383,54 @@ describe('Chat mode', function () {
             Woman.get(755, 'chat');
             Woman.get(318, 'chat');
 
+            woman.on('sessions_push', function () {
+                setTimeout(function () {
+                    woman.send(JSON.stringify({
+                        resource: 'webcams',
+                        method: 'post',
+                        payload: 'active'
+                    }));
+                }, (config.intervals.online_check_interval + 100));
+            });
+
+            camListener = function (cams) {
+                expect(cams).to.deep.equal(state);
+                _test.man.removeListener('webcams_replace', camListener);
+
+                _test.man.on('webcams_replace', function (cams) {
+                    state[225] = 'active';
+
+                    expect(cams).to.deep.equal(state);
+                    done();
+                });
+            };
+
+            _test.man.on('webcams_replace', camListener);
+        });
+
+        it("should remove user form redis an notify listening clients if all user's websockets are close", function (done) {
+            var _test = this,
+                state = {225: 'on', '664': 'active'},
+                camListener;
+
+            this.timeout(2000);
+
+            var woman = Woman.get(225, 'chat');
+            Woman.get(664, 'chat');
+
             redis.hmset('webcams:women', state);
 
             camListener = function (cams) {
                 expect(cams).to.deep.equal(state);
                 _test.man.removeListener('webcams_replace', camListener);
 
-                woman.on('sessions_push', function () {
-                    setTimeout(function () {
-                        woman.send(JSON.stringify({
-                            resource: 'webcams',
-                            method: 'post',
-                            payload: 'active'
-                        }));
-                    }, 400);
+                _test.man.on('webcams_replace', function (cams) {
+                    delete state['225'];
+                    expect(cams).to.deep.equal(state);
+                    done();
                 });
 
-                camListener2 = function (cams) {
-                    expect(cams).to.deep.equal(state);
-                    _test.man.removeListener('webcams_replace', camListener2);
-
-                    _test.man.on('webcams_replace', function (cams) {
-                        state[225] = 'active';
-
-                        expect(cams).to.deep.equal(state);
-                        done();
-                    });
-                };
-
-                _test.man.on('webcams_replace', camListener2);
+                woman.close();
             };
 
             this.man.on('webcams_replace', camListener);

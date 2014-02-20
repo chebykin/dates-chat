@@ -24,6 +24,10 @@ Webcams.add = function (cname, user_id, state) {
     }
 };
 
+Webcams.destroy = function (cname, user_id) {
+    redis.hdel('webcams:' + cname, user_id);
+};
+
 Webcams.all = function (cname) {
     var deferred = Q.defer();
 
@@ -47,11 +51,17 @@ Webcams.all_new = function (cname) {
         .then(function (cams) {
             if (!_.isEqual(cams, previous_webcams[cname])) {
                 previous_webcams[cname] = cams;
-                deferred.resolve(cams);
+                deferred.resolve(cams || {});
             } else {
                 deferred.resolve(null);
             }
         });
 
     return deferred.promise;
+};
+
+Webcams.destroy_all = function () {
+    redis.del('webcams:women');
+    redis.del('webcams:men');
+    previous_webcams = {men: null, women: null};
 };
