@@ -15,7 +15,7 @@ var men = require('../lib/user').men,
 SessionsRequest.post = function (ws) {
     var deferred = Q.defer();
 
-    var key = utils.getCookie('_v_token_key', ws.upgradeReq.headers.cookie);
+    var key = utils.getCookie(process.env.NODE_ENV === 'production' ? '_v_token_key' : '_v_token_key_' + process.env.NODE_ENV, ws.upgradeReq.headers.cookie);
 
     if (typeof key === 'undefined') {
         deferred.reject(new Error('Session action: unknown cookie key.'));
