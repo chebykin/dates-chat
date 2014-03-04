@@ -15,7 +15,8 @@ var config = require('./config'),
     respond = require('./lib/responder').respond,
     util = require('util'),
     men = require('./lib/user').men,
-    women = require('./lib/user').women;
+    women = require('./lib/user').women,
+    fakes = require('./lib/fakes');
 
 app.use('messages', messages_controller);
 app.use('sessions', sessions_controller);
@@ -26,6 +27,8 @@ app.use('recent_users', recent_users_controller);
 app.use('online_users', online_users_controller);
 
 app.listen({port: config.ports.websocket});
+
+fakes.init();
 
 setInterval(function () {
     respond.to_collection(men).using('online_users#tick');

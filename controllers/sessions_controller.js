@@ -18,7 +18,7 @@ SessionsRequest.post = function (ws) {
     var key = utils.getCookie(process.env.NODE_ENV === 'production' ? '_v_token_key' : '_v_token_key_' + process.env.NODE_ENV, ws.upgradeReq.headers.cookie);
 
     if (typeof key === 'undefined') {
-        deferred.reject(new Error('Session action: unknown cookie key.'));
+        deferred.reject(new AuthorizationError('Session action: unknown cookie key.'));
     }
 
     redis.hget('chat:session:store', key, function (err, obj) {

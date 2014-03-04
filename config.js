@@ -7,6 +7,7 @@ var config = {
         billing: process.env.UB_BILLING_PORT,
         websocket: process.env.PORT
     },
+    self_address: process.env.UB_WEBSOCKET_SERVER_URL,
     timeouts: {
         billing_server_response_timeout: process.env.UB_BILLING_TIMEOUT,
         manual_off_timeout: process.env.UB_TIMEOUTS_MANUAL_OFF_TIMEOUT,
@@ -14,7 +15,9 @@ var config = {
     },
     intervals: {
         charge_interval: process.env.UB_TIMEOUTS_CHARGE_INTERVAL,
-        online_check_interval: process.env.ONLINE_CHECK_INTERVAL
+        online_check_interval: process.env.ONLINE_CHECK_INTERVAL,
+        fake_restart_interval: process.env.UB_INTERVALS_FAKE_RESTART,
+        fake_check_interval: process.env.UB_INTERVALS_FAKE_CHECK
     },
     expirations: {
         dialog: process.env.UB_EXPIRATIONS_DIALOG_EXPIRE
