@@ -1,7 +1,7 @@
 bestuabrides-chat
 =================
 
-# Bestuabrides.com chat app
+# dating website chat app
 
 ## Redis keys:
 
